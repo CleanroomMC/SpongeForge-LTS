@@ -27,7 +27,7 @@ package org.spongepowered.common.launch;
 import static org.spongepowered.common.SpongeImpl.ECOSYSTEM_ID;
 
 import net.minecraft.launchwrapper.Launch;
-import org.apache.logging.log4j.Level;
+import org.spongepowered.asm.logging.Level;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
@@ -127,7 +127,7 @@ public class SpongeLaunch {
         MixinBootstrap.init();
 
         final VersionNumber environment = VersionNumber.parse(MixinEnvironment.getCurrentEnvironment().getVersion());
-        final VersionNumber required = VersionNumber.parse("0.8");
+        final VersionNumber required = VersionNumber.parse("0.8.7");
         if (required.compareTo(environment) > 0) {
             new PrettyPrinter(80)
                     .add()
@@ -139,8 +139,7 @@ public class SpongeLaunch {
                     .add("This prevents Sponge from loading its own version, which is newer than the")
                     .add("currently loaded version.")
                     .add()
-                    .add("Rename your Sponge jar file so that the filename starts with \"__aaa\". This")
-                    .add("will cause Sponge and its bundled Mixin version to load first.")
+                    .add("Make sure you are only using MixinBooter and no other mixin provider mods.")
                     .add()
                     .hr('-')
                     .add()
