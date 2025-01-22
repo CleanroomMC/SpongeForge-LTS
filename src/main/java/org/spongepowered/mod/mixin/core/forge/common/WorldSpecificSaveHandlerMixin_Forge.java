@@ -33,7 +33,7 @@ import org.spongepowered.common.world.WorldManager;
 
 import java.io.File;
 
-@Mixin(WorldSpecificSaveHandler.class)
+@Mixin(value = WorldSpecificSaveHandler.class, remap = false)
 public abstract class WorldSpecificSaveHandlerMixin_Forge {
 
     @Shadow private File dataDir;

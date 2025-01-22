@@ -44,7 +44,7 @@ public abstract class TeleporterMixin_Forge implements TeleporterBridge {
     @Shadow @Final protected WorldServer world;
     @Shadow public abstract void placeInPortal(Entity entityIn, float rotationYaw);
     @Shadow public abstract boolean placeInExistingPortal(Entity entityIn, float rotationYaw);
-    @Shadow public abstract void placeEntity(World world, Entity entity, float yaw);
+    @Shadow(remap = false) public abstract void placeEntity(World world, Entity entity, float yaw);
 
     @Override
     public void bridge$placeEntity(net.minecraft.world.World world, Entity entity, float yaw) {

@@ -57,7 +57,7 @@ public abstract class EntityVillagerMixin_Forge extends EntityAgeableMixin imple
      * with Sponge's system.
      */
     @Overwrite
-    public void populateBuyingList() {
+    private void populateBuyingList() {
         final VillagerRegistry.VillagerProfession professionForge = this.getProfessionForge();
         if (this.careerId != 0 && this.careerLevel != 0) {
             ++this.careerLevel;

@@ -34,7 +34,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.common.bridge.world.WorldServerBridge;
 import org.spongepowered.common.bridge.world.WorldBridge;
 
-@Mixin(targets = "net.minecraftforge.common.chunkio.ChunkIOProvider")
+@Mixin(targets = "net.minecraftforge.common.chunkio.ChunkIOProvider", remap = false)
 public class ChunkIOProviderMixin_Forge {
 
     @Shadow private Chunk chunk;

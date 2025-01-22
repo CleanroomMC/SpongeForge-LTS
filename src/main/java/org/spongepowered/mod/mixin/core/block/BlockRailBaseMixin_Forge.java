@@ -52,8 +52,10 @@ import javax.annotation.Nullable;
 @Mixin(value = BlockRailBase.class)
 public abstract class BlockRailBaseMixin_Forge {
 
-    @Shadow public abstract BlockRailBase.EnumRailDirection getRailDirection(IBlockAccess world, BlockPos pos, IBlockState state,
-        @Nullable EntityMinecart cart);
+    @Shadow(remap = false) public abstract BlockRailBase.EnumRailDirection getRailDirection(IBlockAccess world,
+                                                                                            BlockPos pos,
+                                                                                            IBlockState state,
+                                                                                            @Nullable EntityMinecart cart);
 
     // Used to transfer tracking information from minecarts to block positions
     @Inject(method = "onMinecartPass", at = @At(value = "HEAD"), remap = false)
@@ -102,7 +104,7 @@ public abstract class BlockRailBaseMixin_Forge {
         at = @At(value = "INVOKE",
             target = "Lnet/minecraft/block/BlockRailBase;getRailDirection(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/util/math/BlockPos;"
                     + "Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/entity/item/EntityMinecart;)"
-                    + "Lnet/minecraft/block/BlockRailBase$EnumRailDirection;")
+                    + "Lnet/minecraft/block/BlockRailBase$EnumRailDirection;", remap = false)
     )
     @SuppressWarnings("RedundantCast")
     private BlockRailBase.EnumRailDirection forge$fixRailNeighbor(final BlockRailBase blockRailBase, final IBlockAccess world, final BlockPos pos, final IBlockState state,

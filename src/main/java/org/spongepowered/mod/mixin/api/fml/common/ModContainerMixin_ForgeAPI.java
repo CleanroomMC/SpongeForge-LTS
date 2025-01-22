@@ -45,7 +45,7 @@ import java.util.Set;
 /**
  * Make FML mod containers our mod containers.
  */
-@Mixin(ModContainer.class)
+@Mixin(value = ModContainer.class, remap = false)
 public interface ModContainerMixin_ForgeAPI extends PluginContainer {
 
     @Shadow String shadow$getVersion();
