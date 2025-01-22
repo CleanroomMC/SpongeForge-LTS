@@ -29,9 +29,7 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.util.NonNullList;
 import org.spongepowered.api.item.recipe.crafting.ShapelessCraftingRecipe;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,13 +37,13 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 @Mixin(ShapelessRecipes.class)
-public abstract class ShapelessRecipesMixin_API implements IRecipe, ShapelessCraftingRecipe {
+@Implements(value = @Interface(iface = ShapelessCraftingRecipe.class, prefix = "recipe$"))
+public abstract class ShapelessRecipesMixin_API implements IRecipe {
 
-    @Shadow @Final private NonNullList<Ingredient> recipeItems;
+    @Shadow @Final public NonNullList<Ingredient> recipeItems;
 
-    @Override
     @Nonnull
-    public List<org.spongepowered.api.item.recipe.crafting.Ingredient> getIngredientPredicates() {
+    public List<org.spongepowered.api.item.recipe.crafting.Ingredient> recipe$getIngredientPredicates() {
         return this.recipeItems.stream()
                 .map(org.spongepowered.api.item.recipe.crafting.Ingredient.class::cast) // TODO wrap if not Ingredient
                 .collect(Collectors.toList());
