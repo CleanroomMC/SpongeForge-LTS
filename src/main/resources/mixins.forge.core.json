@@ -9,7 +9,6 @@
     "mixins": [
         "advancements.PlayerAdvancementsMixin_Forge",
         "api.event.AbstractEventMixin_Forge",
-        "api.item.recipe.crafting.DelegateSpongeCraftingRecipeMixin_Forge",
         "block.BlockFireMixin_Forge",
         "block.BlockLeavesMixin_Forge",
         "block.BlockLogMixin_Forge",
