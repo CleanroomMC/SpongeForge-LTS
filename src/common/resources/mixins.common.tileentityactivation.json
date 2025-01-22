@@ -1,0 +1,18 @@
+{
+    "minVersion": "0.8",
+    "package": "org.spongepowered.common.mixin.tileentityactivation",
+    "plugin": "org.spongepowered.common.mixin.plugin.tileentityactivation.TileEntityActivationPlugin",
+    "refmap": "mixins.common.refmap.json",
+    "target": "@env(DEFAULT)",
+    "compatibilityLevel": "JAVA_8",
+    "mixinPriority": 1300,
+    "server": [
+        "ChunkMixin_TileEntityActivation",
+        "SpongeImplHooksMixin_TileEntityActivation",
+        "TileEntityMixin_Activation",
+        "WorldServerMixin_TileEntityActivation"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

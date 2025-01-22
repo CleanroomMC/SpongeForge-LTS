@@ -1,0 +1,29 @@
+{
+    "minVersion": "0.8",
+    "package": "org.spongepowered.common.mixin.realtime",
+    "refmap": "mixins.common.refmap.json",
+    "plugin": "org.spongepowered.common.mixin.plugin.RealTimePlugin",
+    "mixins": [
+        "entity.EntityAgeableMixin_RealTime",
+        "entity.EntityLivingBaseMixin_RealTime",
+        "entity.EntityLivingMixin_RealTime",
+        "entity.EntityMixin_RealTime",
+        "entity.item.EntityItemMixin_RealTime",
+        "entity.item.EntityXPOrbMixin_RealTime",
+        "entity.monster.EntityZombieVillagerMixin_RealTime",
+        "entity.player.EntityPlayerMixin_RealTime",
+        "entity.player.EntityPlayerMPMixin_RealTime",
+        "network.NetHandlerPlayServerMixin_RealTime",
+        "server.MinecraftServerMixin_RealTime",
+        "server.management.PlayerInteractionManagerMixin_RealTime",
+        "tileentity.TileEntityBrewingStandMixin_RealTime",
+        "tileentity.TileEntityFurnaceMixin_RealTime",
+        "world.WorldMixin_RealTime",
+        "world.WorldServerMixin_RealTime"
+    ],
+    "server": [
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

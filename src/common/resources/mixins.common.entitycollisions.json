@@ -1,0 +1,15 @@
+{
+    "minVersion": "0.8",
+    "package": "org.spongepowered.common.mixin.entitycollisions",
+    "plugin": "org.spongepowered.common.mixin.plugin.entitycollisions.EntityCollisionsPlugin",
+    "refmap": "mixins.common.refmap.json",
+    "target": "@env(DEFAULT)",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        "ChunkMixin_Collisions",
+        "EntityMixin_Collisions"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

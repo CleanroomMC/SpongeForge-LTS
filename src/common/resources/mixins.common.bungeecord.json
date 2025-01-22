@@ -1,0 +1,19 @@
+{
+    "minVersion": "0.8",
+    "package": "org.spongepowered.common.mixin.bungee",
+    "refmap": "mixins.common.refmap.json",
+    "plugin": "org.spongepowered.common.mixin.plugin.BungeeCordPlugin",
+    "target": "@env(DEFAULT)",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+    ],
+    "server": [
+        "network.NetHandlerHandshakeTCPMixin_Bungee",
+        "network.NetHandlerLoginServerMixin_Bungee",
+        "network.NetworkManagerMixin_Bungee",
+        "network.packet.C00HandshakeMixin_Bungee"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

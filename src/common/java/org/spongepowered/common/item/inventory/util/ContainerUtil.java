@@ -1,0 +1,516 @@
+/*
+ * This file is part of Sponge, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) SpongePowered <https://www.spongepowered.org>
+ * Copyright (c) contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.spongepowered.common.item.inventory.util;
+
+import com.google.common.collect.Multimap;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.passive.AbstractChestHorse;
+import net.minecraft.entity.passive.AbstractHorse;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.ContainerBeacon;
+import net.minecraft.inventory.ContainerBrewingStand;
+import net.minecraft.inventory.ContainerChest;
+import net.minecraft.inventory.ContainerDispenser;
+import net.minecraft.inventory.ContainerEnchantment;
+import net.minecraft.inventory.ContainerFurnace;
+import net.minecraft.inventory.ContainerHopper;
+import net.minecraft.inventory.ContainerMerchant;
+import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.inventory.ContainerRepair;
+import net.minecraft.inventory.ContainerWorkbench;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryBasic;
+import net.minecraft.inventory.InventoryCraftResult;
+import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.inventory.InventoryLargeChest;
+import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.SlotCrafting;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldServer;
+import org.spongepowered.api.item.inventory.BlockCarrier;
+import org.spongepowered.api.item.inventory.Carrier;
+import org.spongepowered.api.item.inventory.Container;
+import org.spongepowered.api.item.inventory.Inventory;
+import org.spongepowered.api.item.inventory.InventoryArchetype;
+import org.spongepowered.api.item.inventory.InventoryArchetypes;
+import org.spongepowered.api.item.inventory.type.CarriedInventory;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.common.SpongeImpl;
+import org.spongepowered.common.bridge.inventory.ContainerBridge;
+import org.spongepowered.common.bridge.inventory.LensProviderBridge;
+import org.spongepowered.common.event.tracking.IPhaseState;
+import org.spongepowered.common.event.tracking.PhaseContext;
+import org.spongepowered.common.event.tracking.PhaseTracker;
+import org.spongepowered.common.item.inventory.DefaultSingleBlockCarrier;
+import org.spongepowered.common.item.inventory.adapter.InventoryAdapter;
+import org.spongepowered.common.item.inventory.adapter.impl.VanillaContainerAdapter;
+import org.spongepowered.common.item.inventory.adapter.impl.slots.CraftingOutputAdapter;
+import org.spongepowered.common.item.inventory.custom.CustomContainer;
+import org.spongepowered.common.item.inventory.lens.Fabric;
+import org.spongepowered.common.item.inventory.lens.Lens;
+import org.spongepowered.common.item.inventory.lens.SlotProvider;
+import org.spongepowered.common.item.inventory.lens.comp.CraftingInventoryLens;
+import org.spongepowered.common.item.inventory.lens.comp.GridInventoryLens;
+import org.spongepowered.common.item.inventory.lens.comp.Inventory2DLens;
+import org.spongepowered.common.item.inventory.lens.impl.DefaultEmptyLens;
+import org.spongepowered.common.item.inventory.lens.impl.DelegatingLens;
+import org.spongepowered.common.item.inventory.lens.impl.collections.SlotCollection;
+import org.spongepowered.common.item.inventory.lens.impl.comp.CraftingInventoryLensImpl;
+import org.spongepowered.common.item.inventory.lens.impl.comp.GridInventoryLensImpl;
+import org.spongepowered.common.item.inventory.lens.impl.comp.Inventory2DLensImpl;
+import org.spongepowered.common.item.inventory.lens.impl.comp.MainPlayerInventoryLensImpl;
+import org.spongepowered.common.item.inventory.lens.impl.comp.OrderedInventoryLensImpl;
+import org.spongepowered.common.item.inventory.lens.impl.minecraft.BrewingStandInventoryLens;
+import org.spongepowered.common.item.inventory.lens.impl.minecraft.FurnaceInventoryLens;
+import org.spongepowered.common.item.inventory.lens.impl.minecraft.LargeChestInventoryLens;
+import org.spongepowered.common.item.inventory.lens.impl.minecraft.PlayerInventoryLens;
+import org.spongepowered.common.item.inventory.lens.impl.minecraft.container.ContainerLens;
+import org.spongepowered.common.item.inventory.lens.impl.slots.CraftingOutputSlotLensImpl;
+import org.spongepowered.common.item.inventory.lens.impl.slots.SlotLensImpl;
+import org.spongepowered.common.mixin.core.inventory.ContainerAccessor;
+import org.spongepowered.common.mixin.core.inventory.ContainerBrewingStandAccessor;
+import org.spongepowered.common.mixin.core.inventory.ContainerDispenserAccessor;
+import org.spongepowered.common.mixin.core.inventory.ContainerFurnaceAccessor;
+import org.spongepowered.common.mixin.core.inventory.ContainerHopperAccessor;
+import org.spongepowered.common.mixin.core.inventory.ContainerHorseInventoryAccessor;
+import org.spongepowered.common.mixin.core.inventory.ContainerMerchantAccessor;
+import org.spongepowered.common.mixin.core.inventory.ContainerRepairAccessor;
+import org.spongepowered.common.mixin.core.inventory.SlotCraftingAccessor;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
+
+public final class ContainerUtil {
+
+    private static final Random RANDOM = new Random();
+
+    private ContainerUtil() {
+    }
+
+    // Note this is likely not doable throughout the implementation, only in certain cases
+
+    public static Container fromNative(final net.minecraft.inventory.Container container) {
+        return (Container) container;
+    }
+
+    // Note, this really cannot be guaranteed to work
+    public static net.minecraft.inventory.Container toNative(final Container container) {
+        return (net.minecraft.inventory.Container) container;
+    }
+
+    public static ContainerBridge toMixin(final net.minecraft.inventory.Container container) {
+        return (ContainerBridge) container;
+    }
+
+    public static net.minecraft.inventory.Container fromMixin(final ContainerBridge container) {
+        return (net.minecraft.inventory.Container) container;
+    }
+
+    /**
+     * Replacement helper method for {@code InventoryHelperMixin#spongeDropInventoryItems(World, double, double, double, IInventory)}
+     * to perform cause tracking related drops. This is specific for blocks, not for any other cases.
+     *
+     * @param worldServer The world server
+     * @param x the x position
+     * @param y the y position
+     * @param z the z position
+     * @param inventory The inventory to drop items from
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static void performBlockInventoryDrops(final WorldServer worldServer, final double x, final double y, final double z, final IInventory inventory) {
+        final PhaseContext<?> context = PhaseTracker.getInstance().getCurrentContext();
+        final IPhaseState<?> currentState = context.state;
+        if (((IPhaseState) currentState).tracksBlockSpecificDrops(context)) {
+            // this is where we could perform item stack pre-merging.
+            // For development reasons, not performing any pre-merging except after the entity item spawns.
+
+            // Don't do pre-merging - directly spawn in item
+            final Multimap<BlockPos, EntityItem> multimap = context.getBlockItemDropSupplier().get();
+            final BlockPos pos = new BlockPos(x, y, z);
+            final Collection<EntityItem> itemStacks = multimap.get(pos);
+            for (int j = 0; j < inventory.getSizeInventory(); j++) {
+                final net.minecraft.item.ItemStack itemStack = inventory.getStackInSlot(j);
+                if (!itemStack.isEmpty()) {
+                    final float f = RANDOM.nextFloat() * 0.8F + 0.1F;
+                    final float f1 = RANDOM.nextFloat() * 0.8F + 0.1F;
+                    final float f2 = RANDOM.nextFloat() * 0.8F + 0.1F;
+
+                    while (!itemStack.isEmpty())
+                    {
+                        final int i = RANDOM.nextInt(21) + 10;
+
+                        final EntityItem entityitem = new EntityItem(worldServer, x + f, y + f1, z + f2, itemStack.splitStack(i));
+
+                        entityitem.motionX = RANDOM.nextGaussian() * 0.05;
+                        entityitem.motionY = RANDOM.nextGaussian() * 0.05 + 0.2;
+                        entityitem.motionZ = RANDOM.nextGaussian() * 0.05;
+                        itemStacks.add(entityitem);
+                    }
+                }
+            }
+            return;
+        }
+        // Finally, just default to spawning the entities normally, regardless of the case.
+        for (int i = 0; i < inventory.getSizeInventory(); i++) {
+            final net.minecraft.item.ItemStack itemStack = inventory.getStackInSlot(i);
+            if (!itemStack.isEmpty()) {
+                InventoryHelper.spawnItemStack(worldServer, x, y, z, itemStack);
+            }
+        }
+    }
+
+    private static class CraftingInventoryData {
+        @Nullable private Integer out;
+        @Nullable private Integer base;
+        @Nullable private InventoryCrafting grid;
+    }
+
+    /**
+     * Generates a fallback lens for given Container
+     *
+     * @param container The Container to generate a lens for
+     * @param slots The slots of the Container
+     * @return The generated fallback lens
+     */
+    @SuppressWarnings("unchecked") public static Lens generateLens(final net.minecraft.inventory.Container container, final SlotProvider slots) {
+        // Get all inventories viewed in the Container & count slots & retain order
+        final Map<Optional<IInventory>, List<Slot>> viewed = container.inventorySlots.stream()
+                .collect(Collectors.groupingBy(i -> Optional.<IInventory>ofNullable(i.inventory), LinkedHashMap::new, Collectors.toList()));
+        int index = 0; // Count the index
+        final CraftingInventoryData crafting = new CraftingInventoryData();
+        final List<Lens> lenses = new ArrayList<>();
+        for (final Map.Entry<Optional<IInventory>, List<Slot>> entry : viewed.entrySet()) {
+            final List<Slot> slotList = entry.getValue();
+            final int slotCount = slotList.size();
+            final IInventory subInventory = entry.getKey().orElse(null);
+            // Generate Lens based on existing InventoryAdapter
+            Lens lens = generateAdapterLens(slots, index, crafting, slotList, subInventory);
+            // Check if sub-inventory is LensProviderBridge
+            if (lens == null && subInventory instanceof LensProviderBridge) {
+                final Fabric keyFabric = ((Fabric) subInventory);
+                lens = ((LensProviderBridge) subInventory).bridge$rootLens(keyFabric, new VanillaContainerAdapter(keyFabric, container));
+            }
+            // Unknown Inventory or Inventory size <> Lens size
+            if (lens == null || lens.slotCount() != slotCount) {
+                if (subInventory instanceof InventoryCraftResult) { // InventoryCraftResult is a Slot
+                    final Slot slot = slotList.get(0);
+                    lens = new CraftingOutputSlotLensImpl(index,
+                            item -> slot.isItemValid(((ItemStack) item)),
+                            itemType -> (slot.isItemValid((ItemStack) org.spongepowered.api.item.inventory.ItemStack.of(itemType, 1))));
+                } else if (subInventory instanceof InventoryCrafting) { // InventoryCrafting has width and height and is Input
+                    final InventoryCrafting craftGrid = (InventoryCrafting) subInventory;
+                    lens = new GridInventoryLensImpl(index, craftGrid.getWidth(), craftGrid.getHeight(), slots);
+                } else if (slotCount == 1) { // Unknown - A single Slot
+                    lens = new SlotLensImpl(index);
+                }
+                else if (subInventory instanceof InventoryBasic && subInventory.getClass().isAnonymousClass()) {
+                    // Anonymous InventoryBasic -> Check for Vanilla Containers:
+                    switch (subInventory.getName()) {
+                        case "Enchant": // Container InputSlots
+                        case "Repair": // Container InputSlots
+                            lens = new OrderedInventoryLensImpl(index, slotCount, slots);
+                            break;
+                        default: // Unknown
+                            lens = new OrderedInventoryLensImpl(index, slotCount, slots);
+                    }
+                }
+                else {
+                    // Unknown - fallback to OrderedInventory
+                    lens = new OrderedInventoryLensImpl(index, slotCount, slots);
+                }
+            }
+            lenses.add(lens);
+            index += slotCount;
+        }
+
+
+        final List<Lens> additional = new ArrayList<>();
+        try {
+            if (crafting.out != null && crafting.base != null && crafting.grid != null) {
+                // Do not create CraftingInventoryLensImpl when inventory size does not match container size
+                if (crafting.base + crafting.grid.getSizeInventory() <= container.inventorySlots.size()) {
+                    additional.add(new CraftingInventoryLensImpl(crafting.out, crafting.base, crafting.grid.getWidth(), crafting.grid.getHeight(), slots));
+                }
+            } else if (crafting.base != null && crafting.grid != null) {
+                additional.add(new GridInventoryLensImpl(crafting.base, crafting.grid.getWidth(), crafting.grid.getHeight(), slots));
+            }
+        } catch (Exception e) {
+            SpongeImpl.getLogger().error("Error while creating CraftingInventoryLensImpl or GridInventoryLensImpl for " + container.getClass().getName(), e);
+        }
+
+
+        // Lens containing/delegating to other lenses
+        return new ContainerLens(container.inventorySlots.size(), (Class<? extends Inventory>) container.getClass(), slots, lenses, additional);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static @Nullable Lens generateAdapterLens(final SlotProvider slots, final int index,
+            final CraftingInventoryData crafting, final List<Slot> slotList, @Nullable final IInventory subInventory) {
+        if (!(subInventory instanceof InventoryAdapter)) {
+            return null;
+        }
+        Lens adapterLens = ((InventoryAdapter) subInventory).bridge$getRootLens();
+        if (adapterLens == null) {
+            return null;
+        }
+        if (subInventory.getSizeInventory() == 0) {
+            return new DefaultEmptyLens(((InventoryAdapter) subInventory));
+        }
+
+        if (adapterLens instanceof PlayerInventoryLens) {
+            if (slotList.size() == 36) {
+                return new DelegatingLens(index, new MainPlayerInventoryLensImpl(index, slots, true), slots);
+            }
+            return null;
+        }
+        // For Crafting Result we need the Slot to get Filter logic
+        if (subInventory instanceof InventoryCraftResult) {
+            final Slot slot = slotList.get(0);
+            adapterLens = new CraftingOutputSlotLensImpl(index, item -> slot.isItemValid(((ItemStack) item)),
+                    itemType -> (slot.isItemValid((ItemStack) org.spongepowered.api.item.inventory.ItemStack.of(itemType, 1))));
+            if (slot instanceof SlotCraftingAccessor) {
+                crafting.out = index;
+                if (crafting.base == null) {
+                    // In case we do not find the InventoryCrafting later assume it is directly after the SlotCrafting
+                    // e.g. for IC2 ContainerIndustrialWorkbench
+                    crafting.base = index + 1;
+                    crafting.grid = ((SlotCraftingAccessor) slot).accessor$getCraftingMatrix();
+                }
+            }
+        }
+        if (subInventory instanceof InventoryCrafting) {
+            crafting.base = index;
+            crafting.grid = ((InventoryCrafting) subInventory);
+        }
+        return new DelegatingLens(index, slotList, adapterLens, slots);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static Lens copyLens(final int base, final InventoryAdapter adapter, final Lens lens,
+            final SlotCollection slots) {
+        if (lens instanceof LargeChestInventoryLens) {
+            return new LargeChestInventoryLens(base, adapter, slots);
+        }
+        if (lens instanceof FurnaceInventoryLens) {
+            return new FurnaceInventoryLens(base, adapter, slots);
+        }
+        if (lens instanceof BrewingStandInventoryLens) {
+            return new BrewingStandInventoryLens(base, adapter, slots);
+        }
+        if (lens instanceof CraftingInventoryLens) {
+            return new CraftingInventoryLensImpl(0, base,
+                    ((GridInventoryLens) lens).getWidth(),
+                    ((GridInventoryLens) lens).getHeight(),
+                    slots);
+        }
+        if (lens instanceof GridInventoryLens) {
+            return new GridInventoryLensImpl(base,
+                    ((GridInventoryLens) lens).getWidth(),
+                    ((GridInventoryLens) lens).getHeight(),
+                    ((GridInventoryLens) lens).getStride(),
+                    slots);
+        }
+        if (lens instanceof Inventory2DLens) {
+            return new Inventory2DLensImpl(base,
+                    ((Inventory2DLens) lens).getWidth(),
+                    ((Inventory2DLens) lens).getHeight(),
+                    slots);
+        }
+        return null;
+    }
+
+    /**
+     * Calculates the slot count for the passed {@link Container}
+     *
+     * @return The {@link SlotCollection} with the amount of slots for this container.
+     */
+    public static SlotProvider countSlots(final net.minecraft.inventory.Container container, final Fabric fabric) {
+        if (container instanceof LensProviderBridge) {
+            return ((LensProviderBridge) container).bridge$slotProvider(fabric, ((InventoryAdapter) container));
+        }
+
+        final SlotCollection.Builder builder = new SlotCollection.Builder();
+        for (final Slot slot : container.inventorySlots) {
+            if (slot instanceof SlotCrafting) {
+                builder.add(1, CraftingOutputAdapter.class, (i) -> new CraftingOutputSlotLensImpl(i,
+                        item -> slot.isItemValid(((ItemStack) item)),
+                        itemType -> (slot.isItemValid((ItemStack) org.spongepowered.api.item.inventory.ItemStack.of(itemType, 1)))));
+            } else {
+                builder.add(1);
+            }
+        }
+        return builder.build();
+    }
+
+    public static InventoryArchetype getArchetype(final net.minecraft.inventory.Container container) {
+        if (container instanceof ContainerChest) {
+            final IInventory inventory = ((ContainerChest) container).getLowerChestInventory();
+            if (inventory instanceof TileEntityChest) {
+                return InventoryArchetypes.CHEST;
+            } else if (inventory instanceof InventoryLargeChest) {
+                return InventoryArchetypes.DOUBLE_CHEST;
+            } else {
+                return InventoryArchetypes.UNKNOWN;
+            }
+        } else if (container instanceof ContainerHopper) {
+            return InventoryArchetypes.HOPPER;
+        } else if (container instanceof ContainerDispenser) {
+            return InventoryArchetypes.DISPENSER;
+        } else if (container instanceof ContainerWorkbench) {
+            return InventoryArchetypes.WORKBENCH;
+        } else if (container instanceof ContainerFurnace) {
+            return InventoryArchetypes.FURNACE;
+        } else if (container instanceof ContainerEnchantment) {
+            return InventoryArchetypes.ENCHANTING_TABLE;
+        } else if (container instanceof ContainerRepair) {
+            return InventoryArchetypes.ANVIL;
+        } else if (container instanceof ContainerBrewingStand) {
+            return InventoryArchetypes.BREWING_STAND;
+        } else if (container instanceof ContainerBeacon) {
+            return InventoryArchetypes.BEACON;
+        } else if (container instanceof ContainerHorseInventoryAccessor) {
+            final AbstractHorse horse = ((ContainerHorseInventoryAccessor) container).accessor$getHorseCarrier();
+            if (horse instanceof AbstractChestHorse && ((AbstractChestHorse) horse).hasChest()) {
+                return InventoryArchetypes.HORSE_WITH_CHEST;
+            }
+            return InventoryArchetypes.HORSE;
+        } else if (container instanceof ContainerMerchant) {
+            return InventoryArchetypes.VILLAGER;
+        } else if (container instanceof ContainerPlayer) {
+            return InventoryArchetypes.PLAYER;
+        }
+        return InventoryArchetypes.UNKNOWN;
+    }
+
+    @Nullable
+    public static Carrier getCarrier(final Container container) {
+        if (container instanceof BlockCarrier) {
+            return ((BlockCarrier) container);
+        }
+        if (container instanceof CustomContainer) {
+            return ((CustomContainer) container).inv.getCarrier();
+        } else if (container instanceof ContainerChest) {
+            final IInventory inventory = ((ContainerChest) container).getLowerChestInventory();
+            if (inventory instanceof Carrier) {
+                if (inventory instanceof TileEntityChest) {
+                    return (Carrier) inventory;
+                } else if (inventory instanceof InventoryLargeChest) {
+                    return ((BlockCarrier) inventory);
+                }
+            }
+            return carrierOrNull(inventory);
+        } else if (container instanceof ContainerHopperAccessor) {
+            return carrierOrNull(((ContainerHopperAccessor) container).accessor$getHopperInventory());
+        } else if (container instanceof ContainerDispenserAccessor) {
+            return carrierOrNull(((ContainerDispenserAccessor) container).accessor$getDispenserInventory());
+        } else if (container instanceof ContainerFurnaceAccessor) {
+            return carrierOrNull(((ContainerFurnaceAccessor) container).accessor$getFurnaceInventory());
+        } else if (container instanceof ContainerBrewingStandAccessor) {
+            return carrierOrNull(((ContainerBrewingStandAccessor) container).accessor$getBrewingStandInventory());
+        } else if (container instanceof ContainerBeacon) {
+            return carrierOrNull(((ContainerBeacon) container).getTileEntity());
+        } else if (container instanceof ContainerHorseInventoryAccessor) {
+            return (Carrier) ((ContainerHorseInventoryAccessor) container).accessor$getHorseCarrier();
+        } else if (container instanceof ContainerMerchantAccessor && ((ContainerMerchantAccessor) container).accessor$getMerchantCarrier() instanceof Carrier) {
+            return (Carrier) ((ContainerMerchantAccessor) container).accessor$getMerchantCarrier();
+        } else if (container instanceof ContainerRepairAccessor) {
+            final EntityPlayer player = ((ContainerRepairAccessor) container).accessor$getPlayerCarrier();
+            if (player instanceof EntityPlayerMP) {
+                return (Carrier) player;
+            }
+        }
+
+        // Fallback: Try to find a Carrier owning the first Slot of the Container
+        if (container instanceof ContainerAccessor) {
+            for (final Slot slot : ((ContainerAccessor) container).accessor$getSlots()) {
+                // Slot Inventory is a Carrier?
+                if (slot.inventory instanceof Carrier) {
+                    return ((Carrier) slot.inventory);
+                }
+                // Slot Inventory is a TileEntity
+                if (slot.inventory instanceof TileEntity) {
+                    return new DefaultSingleBlockCarrier() {
+                        @Override
+                        public Location<org.spongepowered.api.world.World> getLocation() {
+                            final BlockPos pos = ((TileEntity) slot.inventory).getPos();
+                            return new Location<>(((org.spongepowered.api.world.World) ((TileEntity) slot.inventory).getWorld()), pos.getX(), pos.getY(), pos.getZ());
+                        }
+
+                        @SuppressWarnings("rawtypes")
+                        @Override
+                        public CarriedInventory<?> getInventory() {
+                            return ((CarriedInventory) container);
+                        }
+                    };
+                }
+            }
+        }
+        final Location<org.spongepowered.api.world.World> loc = ((ContainerBridge) container).bridge$getOpenLocation();
+        if (loc != null) {
+            return new DefaultSingleBlockCarrier() {
+                @Override
+                public Location<org.spongepowered.api.world.World> getLocation() {
+                    return loc;
+                }
+
+                @SuppressWarnings("rawtypes")
+                @Override
+                public CarriedInventory<?> getInventory() {
+                    return ((CarriedInventory) container);
+                }
+            };
+        }
+        return null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Carrier carrierOrNull(final IInventory inventory) {
+        if (inventory instanceof Carrier) {
+            return (Carrier) inventory;
+        }
+        if (inventory instanceof CarriedInventory) {
+            final Optional<Carrier> carrier = ((CarriedInventory) inventory).getCarrier();
+            return carrier.orElse(null);
+        }
+        return null;
+    }
+
+    public static org.spongepowered.api.item.inventory.Slot getSlot(final net.minecraft.inventory.Container container, final int slot) {
+        return ((ContainerBridge) container).bridge$getContainerSlot(slot);
+    }
+}
