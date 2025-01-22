@@ -34,7 +34,6 @@ import org.spongepowered.asm.mixin.MixinEnvironment.Phase;
 import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.extensibility.IEnvironmentTokenProvider;
 import org.spongepowered.common.launch.SpongeLaunch;
-import org.spongepowered.launch.JavaVersionCheckUtils;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -67,20 +66,6 @@ public class SpongeCoremod implements IFMLLoadingPlugin {
     }
 
     public SpongeCoremod() {
-        // This MUST be the first line in the constructor, to prevent
-        // JavaVersionCheckUtils from being passed through the transformer
-        // chain, and thereby triggering Mixin to switch to PREINIT.
-        Launch.classLoader.addTransformerExclusion("org.spongepowered.launch.JavaVersionCheckUtils");
-
-        try {
-            // Note: This is still needed because it checks if at least Java 8u40 is installed
-            JavaVersionCheckUtils.ensureJava8();
-        } catch (Exception e) {
-            e.printStackTrace();
-            this.clearSecurityManager();
-            Runtime.getRuntime().exit(1);
-        }
-
         SpongeLaunch.addJreExtensionsToClassPath();
 
         Launch.classLoader.addClassLoaderExclusion("org.spongepowered.common.launch.");
@@ -185,7 +170,7 @@ public class SpongeCoremod implements IFMLLoadingPlugin {
 
     @Override
     public String getAccessTransformerClass() {
-        return "org.spongepowered.mod.asm.transformer.SpongeAccessTransformer";
+        return null;
     }
 
 }
