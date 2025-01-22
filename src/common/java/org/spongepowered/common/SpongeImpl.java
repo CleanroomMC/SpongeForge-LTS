@@ -33,9 +33,6 @@ import static org.spongepowered.common.config.SpongeConfig.Type.TRACKER;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.datafix.DataFixer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.GameState;
 import org.spongepowered.api.Platform;
 import org.spongepowered.api.Sponge;
@@ -44,6 +41,8 @@ import org.spongepowered.api.event.SpongeEventFactory;
 import org.spongepowered.api.event.game.state.GameStateEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.Direction;
+import org.spongepowered.asm.logging.ILogger;
+import org.spongepowered.asm.service.MixinService;
 import org.spongepowered.common.command.SpongeCommandManager;
 import org.spongepowered.common.config.SpongeConfig;
 import org.spongepowered.common.config.SpongeConfigSaveManager;
@@ -80,7 +79,7 @@ public final class SpongeImpl {
     // TODO: Keep up to date
     public static final SpongeMinecraftVersion MINECRAFT_VERSION = new SpongeMinecraftVersion("1.12.2", 340);
 
-    private static final Logger logger = LogManager.getLogger(ECOSYSTEM_NAME);
+    private static final ILogger logger = MixinService.getService().getLogger(ECOSYSTEM_NAME);
     public static final Random random = new Random();
 
     // Can't @Inject these because they are referenced before everything is initialized
@@ -125,7 +124,7 @@ public final class SpongeImpl {
         return instance;
     }
 
-    public static Logger getLogger() {
+    public static ILogger getLogger() {
         return logger;
     }
 

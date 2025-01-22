@@ -26,7 +26,7 @@ package org.spongepowered.common.mixin.core.nbt;
 
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import org.apache.logging.log4j.Level;
+import org.spongepowered.asm.logging.Level;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

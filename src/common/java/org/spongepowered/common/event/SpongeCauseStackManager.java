@@ -30,7 +30,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.apache.logging.log4j.Level;
+import org.spongepowered.asm.logging.Level;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.cause.Cause;

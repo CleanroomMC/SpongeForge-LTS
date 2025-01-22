@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.common.ForgeVersion;
-import org.apache.logging.log4j.Level;
+import org.spongepowered.asm.logging.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfig;

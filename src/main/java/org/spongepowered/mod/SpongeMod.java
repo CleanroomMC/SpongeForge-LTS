@@ -65,7 +65,7 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.apache.logging.log4j.Level;
+import org.spongepowered.asm.logging.Level;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;

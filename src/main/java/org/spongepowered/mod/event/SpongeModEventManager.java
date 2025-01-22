@@ -70,7 +70,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
-import org.apache.logging.log4j.Level;
+import org.spongepowered.asm.logging.Level;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.GameState;
 import org.spongepowered.api.Sponge;
