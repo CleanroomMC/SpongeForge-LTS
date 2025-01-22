@@ -34,7 +34,11 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.WorldType;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.spongepowered.asm.logging.Level;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.asm.util.PrettyPrinter;
@@ -275,6 +279,11 @@ public final class SpongeProxyBlockAccess implements IBlockAccess, AutoCloseable
     @Override
     public int getStrongPower(final BlockPos pos, final EnumFacing direction) {
         return this.processingWorld.getStrongPower(pos, direction);
+    }
+
+    @Override
+    public boolean isSideSolid(BlockPos pos, EnumFacing side, boolean _default) {
+        return this.processingWorld.isSideSolid(pos, side, _default);
     }
 
     public void onChunkChanged(final BlockPos pos, final IBlockState newState) {
@@ -570,6 +579,24 @@ public final class SpongeProxyBlockAccess implements IBlockAccess, AutoCloseable
             transaction = transaction.next;
         }
         return false;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public int getCombinedLight(BlockPos pos, int lightValue) {
+        throw new RuntimeException("Client side method not supported to be called via SpongeProxyBlockAccess.");
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Biome getBiome(BlockPos pos) {
+        throw new RuntimeException("Client side method not supported to be called via SpongeProxyBlockAccess.");
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public WorldType getWorldType() {
+        throw new RuntimeException("Client side method not supported to be called via SpongeProxyBlockAccess.");
     }
 
     public static final class Proxy implements AutoCloseable {
