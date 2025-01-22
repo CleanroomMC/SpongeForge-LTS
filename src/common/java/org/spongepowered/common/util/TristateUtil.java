@@ -24,28 +24,35 @@
  */
 package org.spongepowered.common.util;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.EnumBiMap;
-import com.google.common.collect.ImmutableBiMap;
 import net.minecraft.util.EnumActionResult;
 import org.spongepowered.api.util.Tristate;
 
 public class TristateUtil {
 
-    private static final EnumBiMap<EnumActionResult, Tristate> map = EnumBiMap.create(EnumActionResult.class, Tristate.class);
-    static {
-        map.put(EnumActionResult.FAIL, Tristate.FALSE);
-        map.put(EnumActionResult.PASS, Tristate.UNDEFINED);
-        map.put(EnumActionResult.SUCCESS, Tristate.TRUE);
-    }
-
     public static Tristate fromActionResult(EnumActionResult result) {
-        return map.get(result);
+        switch (result) {
+            case FAIL:
+                return Tristate.FALSE;
+            case PASS:
+                return Tristate.UNDEFINED;
+            case SUCCESS:
+                return Tristate.TRUE;
+            default:
+                return null;
+        }
     }
 
     public static EnumActionResult toActionResult(Tristate tristate) {
-        return map.inverse().get(tristate);
+        switch (tristate) {
+            case FALSE:
+                return EnumActionResult.FAIL;
+            case UNDEFINED:
+                return EnumActionResult.PASS;
+            case TRUE:
+                return EnumActionResult.SUCCESS;
+            default:
+                return null;
+        }
     }
-
 
 }
