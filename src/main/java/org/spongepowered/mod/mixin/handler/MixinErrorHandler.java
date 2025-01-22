@@ -28,19 +28,18 @@ import com.google.common.collect.ImmutableSet;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.common.ForgeVersion;
+import org.spongepowered.asm.logging.ILogger;
 import org.spongepowered.asm.logging.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfig;
 import org.spongepowered.asm.mixin.extensibility.IMixinErrorHandler;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import org.spongepowered.asm.mixin.transformer.throwables.MixinTargetAlreadyLoadedException;
+import org.spongepowered.asm.service.MixinService;
 import org.spongepowered.asm.util.ConstraintParser;
 import org.spongepowered.asm.util.PrettyPrinter;
 import org.spongepowered.asm.util.throwables.ConstraintViolationException;
 import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.mixin.handler.TerminateVM;
-import org.spongepowered.launch.Main;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -59,10 +58,10 @@ public class MixinErrorHandler implements IMixinErrorHandler {
      * Everyone needs a Log
      * Log, Log, Log!
      */
-    private final Logger log = LogManager.getLogger("Sponge");
+    private final ILogger log = MixinService.getService().getLogger("Sponge");
 
     private PrettyPrinter forgeVersionNotValid(final ConstraintParser.Constraint constraint) {
-        final String forgeVer = Main.getManifestAttribute("TargetForgeVersion", null);
+        final String forgeVer = "2860";
         final String forgeMessage = forgeVer == null ? String.valueOf(constraint.getMin()) : forgeVer;
 
         return new PrettyPrinter()
@@ -123,7 +122,7 @@ public class MixinErrorHandler implements IMixinErrorHandler {
     }
 
     private PrettyPrinter itsAllGoneHorriblyWrong() {
-        final String forgeVer = Main.getManifestAttribute("TargetForgeVersion", null);
+        final String forgeVer = "2860";
         final String forgeMessage = forgeVer == null ? "is usually specified in the sponge mod's jar filename" : "version is for " + forgeVer;
         return new PrettyPrinter()
             .add()
@@ -211,9 +210,9 @@ public class MixinErrorHandler implements IMixinErrorHandler {
         if (th.getCause() instanceof ConstraintViolationException) {
             final ConstraintViolationException ex = (ConstraintViolationException) th.getCause();
             final ConstraintParser.Constraint constraint = ex.getConstraint();
-            if ("FORGE".equals(constraint.getToken())) {
-                return this.forgeVersionNotValid(constraint);
-            }
+            // if ("FORGE".equals(constraint.getToken())) {
+                // return this.forgeVersionNotValid(constraint);
+            // }
             return this.patchConstraintFailed(constraint, ex);
         } else if (th instanceof MixinTargetAlreadyLoadedException) {
             return this.badCoreMod((MixinTargetAlreadyLoadedException) th);
