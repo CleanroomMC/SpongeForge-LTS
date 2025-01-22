@@ -71,6 +71,7 @@ import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.storage.MapStorage;
+import net.minecraftforge.registries.GameData;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.TileEntityType;
@@ -111,12 +112,7 @@ import org.spongepowered.common.registry.type.entity.ProfessionRegistryModule;
 import org.spongepowered.common.util.SpawnerSpawnType;
 import org.spongepowered.common.world.WorldManager;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.FutureTask;
 import java.util.function.Predicate;
 
@@ -201,7 +197,7 @@ public final class SpongeImplHooks {
 
     @Nullable
     public static Class<? extends Entity> getEntityClass(final ResourceLocation name) {
-        return EntityList.REGISTRY.getObject(name);
+        return EntityList.getClass(name);
     }
 
     @Nullable
@@ -210,7 +206,7 @@ public final class SpongeImplHooks {
     }
 
     public static int getEntityId(final Class<? extends Entity> entityClass) {
-        return EntityList.REGISTRY.getIDForObject(entityClass);
+        return EntityList.getID(entityClass);
     }
 
     // Block
@@ -414,8 +410,13 @@ public final class SpongeImplHooks {
         return Optional.of(((CraftingRecipe) recipe));
     }
 
+    // TODO: check timing of this method
     public static void register(final ResourceLocation name, final IRecipe recipe) {
-        CraftingManager.register(name, recipe);
+        // CraftingManager.register(name, recipe);
+        if (!Objects.equals(recipe.getRegistryName(), name)) {
+            throw new RuntimeException("IRecipe does not match the name given when registering.");
+        }
+        GameData.register_impl(recipe);
     }
 
     @Nullable
