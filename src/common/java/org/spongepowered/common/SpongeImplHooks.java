@@ -334,14 +334,6 @@ public final class SpongeImplHooks {
         }
     }
 
-    public static void onEntityError(final Entity entity, final CrashReport crashReport) {
-        throw new ReportedException(crashReport);
-    }
-
-    public static void onTileEntityError(final TileEntity tileEntity, final CrashReport crashReport) {
-        throw new ReportedException(crashReport);
-    }
-
     public static void blockExploded(final Block block, final World world, final BlockPos blockpos, final Explosion explosion) {
         world.setBlockToAir(blockpos);
         block.onExplosionDestroy(world, blockpos, explosion);

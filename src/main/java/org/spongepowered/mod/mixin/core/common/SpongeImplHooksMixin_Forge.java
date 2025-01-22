@@ -78,6 +78,7 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
@@ -98,9 +99,6 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.SpongeImplHooks;
 import org.spongepowered.common.bridge.tileentity.TileEntityBridge;
@@ -149,8 +147,6 @@ import javax.annotation.Nullable;
 @Mixin(value = SpongeImplHooks.class, remap = false)
 public abstract class SpongeImplHooksMixin_Forge {
 
-    private static Boolean forgeImpl$deobfuscatedEnvironment;
-
     /**
      * @author unknown
      * @reason Forge compatibility
@@ -191,12 +187,7 @@ public abstract class SpongeImplHooksMixin_Forge {
      */
     @Overwrite
     public static boolean isDeobfuscatedEnvironment() {
-        if (forgeImpl$deobfuscatedEnvironment != null) {
-            return forgeImpl$deobfuscatedEnvironment;
-        }
-
-        forgeImpl$deobfuscatedEnvironment = (Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
-        return forgeImpl$deobfuscatedEnvironment;
+        return FMLLaunchHandler.isDeobfuscatedEnvironment();
     }
 
     /**
@@ -499,39 +490,6 @@ public abstract class SpongeImplHooksMixin_Forge {
     }
 
     // Copied from Forge's World patches
-
-    /**
-     * @author unknown
-     * @reason Forge compatibility
-     */
-    @SuppressWarnings("deprecation")
-    @Overwrite
-    public static void onEntityError(final Entity entity, final CrashReport crashReport) {
-        if (ForgeModContainer.removeErroringEntities) {
-            // Sponge - fix https://github.com/MinecraftForge/MinecraftForge/issues/3713
-            net.minecraftforge.fml.relauncher.FMLRelaunchLog.log.getLogger().log(Level.ERROR, crashReport.getCompleteReport());
-            entity.getEntityWorld().removeEntity(entity);
-        } else {
-            throw new ReportedException(crashReport);
-        }
-    }
-
-    /**
-     * @author unknown
-     * @reason Forge compatibility
-     */
-    @SuppressWarnings("deprecation")
-    @Overwrite
-    public static void onTileEntityError(final TileEntity tileEntity, final CrashReport crashReport) {
-        if (ForgeModContainer.removeErroringTileEntities) {
-            // Sponge - fix https://github.com/MinecraftForge/MinecraftForge/issues/3713
-            net.minecraftforge.fml.relauncher.FMLRelaunchLog.log.getLogger().log(Level.ERROR, crashReport.getCompleteReport());
-            tileEntity.invalidate();
-            tileEntity.getWorld().removeTileEntity(tileEntity.getPos());
-        } else {
-            throw new ReportedException(crashReport);
-        }
-    }
 
     /**
      * @author unknown
