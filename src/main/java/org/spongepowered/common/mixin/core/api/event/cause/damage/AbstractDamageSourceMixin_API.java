@@ -24,14 +24,13 @@
  */
 package org.spongepowered.common.mixin.core.api.event.cause.damage;
 
-import net.minecraft.entity.Entity;
-import org.spongepowered.api.event.cause.entity.damage.source.IndirectEntityDamageSource;
-import org.spongepowered.api.event.cause.entity.damage.source.common.AbstractIndirectEntityDamageSource;
+import org.spongepowered.api.event.cause.entity.damage.source.DamageSource;
+import org.spongepowered.api.event.cause.entity.damage.source.common.AbstractDamageSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.common.event.damage.SpongeCommonIndirectEntityDamageSource;
+import org.spongepowered.common.event.damage.SpongeCommonDamageSource;
 
 /*
  * @author gabizou
@@ -42,34 +41,35 @@ import org.spongepowered.common.event.damage.SpongeCommonIndirectEntityDamageSou
  * but still retain the sanity of the proper "damage type" for mods and native
  * Minecraft damage source.
  */
-@Mixin(AbstractIndirectEntityDamageSource.class)
-public abstract class AbstractIndirectEntityDamageSourceMixin_API implements IndirectEntityDamageSource {
+@Mixin(AbstractDamageSource.class)
+public abstract class AbstractDamageSourceMixin_API implements DamageSource {
 
     @SuppressWarnings("ConstantConditions")
-    @Inject(method = "<init>", at = @At("RETURN"))
+    @Inject(method = "<init>", at = @At("RETURN"), remap = false)
     private void api$setUpBridges(final CallbackInfo callbackInfo) {
-        final SpongeCommonIndirectEntityDamageSource commonIndirect = (SpongeCommonIndirectEntityDamageSource) (Object) this;
-        commonIndirect.setDamageType(getType().getId());
-        commonIndirect.setEntitySource((Entity) getSource());
-        commonIndirect.setIndirectSource((Entity) getIndirectSource());
+        final SpongeCommonDamageSource commonSource = (SpongeCommonDamageSource) (Object) this;
+        commonSource.setDamageType(getType().getId());
         if (isAbsolute()) {
-            commonIndirect.bridge$setDamageIsAbsolute();
+            commonSource.bridge$setDamageIsAbsolute();
         }
         if (isBypassingArmor()) {
-            commonIndirect.bridge$setDamageBypassesArmor();
+            commonSource.bridge$setDamageBypassesArmor();
         }
         if (isExplosive()) {
-            commonIndirect.setExplosion();
+            commonSource.setExplosion();
         }
         if (isMagic()) {
-            commonIndirect.setMagicDamage();
+            commonSource.setMagicDamage();
         }
         if (isScaledByDifficulty()) {
-            commonIndirect.setDifficultyScaled();
+            commonSource.setDifficultyScaled();
         }
         if (doesAffectCreative()) {
-            commonIndirect.canHarmInCreative();
+            commonSource.canHarmInCreative();
         }
+        // Sets exhaustion last as to allow control if the builder specified a custom exhaustion value
+
+        commonSource.bridge$setHungerDamage((float) getExhaustion());
     }
 
 }

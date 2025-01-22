@@ -24,13 +24,14 @@
  */
 package org.spongepowered.common.mixin.core.api.event.cause.damage;
 
-import org.spongepowered.api.event.cause.entity.damage.source.DamageSource;
-import org.spongepowered.api.event.cause.entity.damage.source.common.AbstractDamageSource;
+import net.minecraft.entity.Entity;
+import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
+import org.spongepowered.api.event.cause.entity.damage.source.common.AbstractEntityDamageSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.common.event.damage.SpongeCommonDamageSource;
+import org.spongepowered.common.event.damage.SpongeCommonEntityDamageSource;
 
 /*
  * @author gabizou
@@ -41,14 +42,15 @@ import org.spongepowered.common.event.damage.SpongeCommonDamageSource;
  * but still retain the sanity of the proper "damage type" for mods and native
  * Minecraft damage source.
  */
-@Mixin(AbstractDamageSource.class)
-public abstract class AbstractDamageSourceMixin_API implements DamageSource {
+@Mixin(AbstractEntityDamageSource.class)
+public abstract class AbstractEntityDamageSourceMixin_API implements EntityDamageSource {
 
     @SuppressWarnings("ConstantConditions")
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void api$setUpBridges(final CallbackInfo callbackInfo) {
-        final SpongeCommonDamageSource commonSource = (SpongeCommonDamageSource) (Object) this;
+    @Inject(method = "<init>", at = @At("RETURN"), remap = false)
+    private void impl$bridgeApiToImplConstruction(final CallbackInfo callbackInfo) {
+        final SpongeCommonEntityDamageSource commonSource = (SpongeCommonEntityDamageSource) (Object) this;
         commonSource.setDamageType(getType().getId());
+        commonSource.setEntitySource((Entity) getSource());
         if (isAbsolute()) {
             commonSource.bridge$setDamageIsAbsolute();
         }
@@ -67,9 +69,6 @@ public abstract class AbstractDamageSourceMixin_API implements DamageSource {
         if (doesAffectCreative()) {
             commonSource.canHarmInCreative();
         }
-        // Sets exhaustion last as to allow control if the builder specified a custom exhaustion value
-
-        commonSource.bridge$setHungerDamage((float) getExhaustion());
     }
 
 }

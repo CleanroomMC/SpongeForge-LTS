@@ -754,7 +754,7 @@ public abstract class WorldMixin implements WorldBridge {
      * @return True if the block position is outside build height
      */
     @Overwrite
-    private boolean isOutsideBuildHeight(final BlockPos pos) { // isOutsideBuildHeight
+    public boolean isOutsideBuildHeight(final BlockPos pos) { // isOutsideBuildHeight
         return ((BlockPosBridge) pos).bridge$isInvalidYPosition();
     }
 

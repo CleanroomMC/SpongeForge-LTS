@@ -25,13 +25,13 @@
 package org.spongepowered.common.mixin.core.api.event.cause.damage;
 
 import net.minecraft.entity.Entity;
-import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
-import org.spongepowered.api.event.cause.entity.damage.source.common.AbstractEntityDamageSource;
+import org.spongepowered.api.event.cause.entity.damage.source.IndirectEntityDamageSource;
+import org.spongepowered.api.event.cause.entity.damage.source.common.AbstractIndirectEntityDamageSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.common.event.damage.SpongeCommonEntityDamageSource;
+import org.spongepowered.common.event.damage.SpongeCommonIndirectEntityDamageSource;
 
 /*
  * @author gabizou
@@ -42,32 +42,33 @@ import org.spongepowered.common.event.damage.SpongeCommonEntityDamageSource;
  * but still retain the sanity of the proper "damage type" for mods and native
  * Minecraft damage source.
  */
-@Mixin(AbstractEntityDamageSource.class)
-public abstract class AbstractEntityDamageSourceMixin_API implements EntityDamageSource {
+@Mixin(AbstractIndirectEntityDamageSource.class)
+public abstract class AbstractIndirectEntityDamageSourceMixin_API implements IndirectEntityDamageSource {
 
     @SuppressWarnings("ConstantConditions")
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void impl$bridgeApiToImplConstruction(final CallbackInfo callbackInfo) {
-        final SpongeCommonEntityDamageSource commonSource = (SpongeCommonEntityDamageSource) (Object) this;
-        commonSource.setDamageType(getType().getId());
-        commonSource.setEntitySource((Entity) getSource());
+    @Inject(method = "<init>", at = @At("RETURN"), remap = false)
+    private void api$setUpBridges(final CallbackInfo callbackInfo) {
+        final SpongeCommonIndirectEntityDamageSource commonIndirect = (SpongeCommonIndirectEntityDamageSource) (Object) this;
+        commonIndirect.setDamageType(getType().getId());
+        commonIndirect.setEntitySource((Entity) getSource());
+        commonIndirect.setIndirectSource((Entity) getIndirectSource());
         if (isAbsolute()) {
-            commonSource.bridge$setDamageIsAbsolute();
+            commonIndirect.bridge$setDamageIsAbsolute();
         }
         if (isBypassingArmor()) {
-            commonSource.bridge$setDamageBypassesArmor();
+            commonIndirect.bridge$setDamageBypassesArmor();
         }
         if (isExplosive()) {
-            commonSource.setExplosion();
+            commonIndirect.setExplosion();
         }
         if (isMagic()) {
-            commonSource.setMagicDamage();
+            commonIndirect.setMagicDamage();
         }
         if (isScaledByDifficulty()) {
-            commonSource.setDifficultyScaled();
+            commonIndirect.setDifficultyScaled();
         }
         if (doesAffectCreative()) {
-            commonSource.canHarmInCreative();
+            commonIndirect.canHarmInCreative();
         }
     }
 
