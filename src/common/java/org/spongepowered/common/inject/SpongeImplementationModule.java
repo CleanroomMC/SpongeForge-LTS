@@ -29,7 +29,6 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.binder.AnnotatedBindingBuilder;
 import org.apache.logging.log4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.GameRegistry;
 import org.spongepowered.api.MinecraftVersion;
@@ -91,9 +90,6 @@ public class SpongeImplementationModule extends PrivateModule {
         this.expose(PluginManager.class);
         this.expose(EventManager.class);
         this.expose(ChannelRegistrar.class);
-
-        this.bind(Logger.class).toInstance(SpongeImpl.getLogger());
-        this.bind(org.slf4j.Logger.class).toInstance(LoggerFactory.getLogger(SpongeImpl.getLogger().getName()));
 
         this.requestStaticInjection(SpongeImpl.class);
         this.requestStaticInjection(Sponge.class);
