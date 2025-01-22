@@ -1,0 +1,45 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "org.spongepowered.mod.mixin.api",
+    "refmap": "mixins.forge.refmap.json",
+    "priority": 901,
+    "target": "@env(DEFAULT)",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        "common.extra.fluid.SpongeFluidStackBuilderMixin_ForgeAPI",
+        "common.world.SpongeDimensionMixin_ForgeAPI",
+        "fml.common.event.FMLConstructionEventMixin_ForgeAPI",
+        "fml.common.event.FMLInitializationEventMixin_ForgeAPI",
+        "fml.common.event.FMLLoadCompleteEventMixin_ForgeAPI",
+        "fml.common.event.FMLPostInitializationEventMixin_ForgeAPI",
+        "fml.common.event.FMLPreInitializationEventMixin_ForgeAPI",
+        "fml.common.event.FMLServerAboutToStartEventMixin_ForgeAPI",
+        "fml.common.event.FMLServerStartedEventMixin_ForgeAPI",
+        "fml.common.event.FMLServerStartingEventMixin_ForgeAPI",
+        "fml.common.event.FMLServerStoppedEventMixin_ForgeAPI",
+        "fml.common.event.FMLServerStoppingEventMixin_ForgeAPI",
+        "fml.common.gameevent.PlayerEventMixin_ForgeAPI",
+        "forge.common.util.ITeleporterMixin_ForgeAPI",
+        "forge.fluids.FluidMixin_ForgeAPI",
+        "forge.fluids.FluidStackMixin_ForgeAPI",
+        "forge.items.IItemHandlerMixin_ForgeAPI",
+        "forge.items.SlotItemHandlerMixin_ForgeAPI",
+        "forge.items.wrapper.InvWrapperMixin_ForgeAPI",
+        "minecraft.entity.vehicle.EntityMinecartMixin_ForgeAPI",
+        "minecraft.server.MinecraftServerMixin_ForgeAPI",
+        "minecraft.world.WorldServerMixin_ForgeAPI"
+    ],
+    "client": [
+        "minecraft.client.network.NetHandlerPlayClientMixin_ForgeAPI",
+        "minecraft.client.server.IntegratedServerMixin_ForgeAPI"
+    ],
+    "server": [
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "overwrites": {
+        "conformVisibility": true
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "org.spongepowered.mod.mixin.core",
+    "refmap": "mixins.forge.refmap.json",
+    "target": "@env(INIT)",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

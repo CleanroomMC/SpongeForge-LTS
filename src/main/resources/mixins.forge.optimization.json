@@ -1,0 +1,26 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "org.spongepowered.mod.mixin.optimization",
+    "plugin": "org.spongepowered.mod.mixin.plugin.optimization.SpongeForgeOptimizationPlugin",
+    "refmap": "mixins.forge.refmap.json",
+    "priority": 1111,
+    "target": "@env(DEFAULT)",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        "threadchecks.SpongeImplHooksMixin_ForgeThreadChecks",
+        "threadchecks.MinecraftServerMixin_ForgeThreadChecks",
+        "logspam.ForgeHooksMixin_DisableLogSpamFromAdvancements"
+    ],
+    "server": [
+    ],
+    "client": [
+        "threadchecks.MinecraftMixin_ForgeThreadChecks"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "overwrites": {
+        "conformVisibility": true
+    }
+}
