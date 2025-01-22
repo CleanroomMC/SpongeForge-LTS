@@ -3,3 +3,19 @@
 
 // If you wish to use the default helper methods, uncomment the line below
 // apply from: 'gradle/scripts/helpers.gradle'
+
+tasks.register('stripFinalFromItemStackClass') {
+    dependsOn 'setupDecompWorkspace'
+    doLast {
+        if (change_minecraft_sources) {
+            def classFile = file('build/rfg/minecraft-src/java/net/minecraft/item/ItemStack.java')
+            def text = classFile.text
+            text = text.replace('\npublic final class ItemStack', '\npublic class ItemStack')
+            classFile.text = text
+        }
+    }
+}
+
+tasks.named('setupDecompWorkspace') {
+    finalizedBy 'stripFinalFromItemStackClass'
+}
