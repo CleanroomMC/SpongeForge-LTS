@@ -2,7 +2,7 @@
     "minVersion": "0.8",
     "package": "org.spongepowered.common.mixin.tileentityactivation",
     "plugin": "org.spongepowered.common.mixin.plugin.tileentityactivation.TileEntityActivationPlugin",
-    "refmap": "mixins.common.refmap.json",
+    "refmap": "mixins.spongeforge.refmap.json",
     "target": "@env(DEFAULT)",
     "compatibilityLevel": "JAVA_8",
     "mixinPriority": 1300,

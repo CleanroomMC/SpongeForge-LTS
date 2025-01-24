@@ -124,8 +124,6 @@ public class SpongeLaunch {
     }
 
     public static void setupMixinEnvironment() {
-        MixinBootstrap.init();
-
         final VersionNumber environment = VersionNumber.parse(MixinEnvironment.getCurrentEnvironment().getVersion());
         final VersionNumber required = VersionNumber.parse("0.8.7");
         if (required.compareTo(environment) > 0) {
@@ -149,22 +147,17 @@ public class SpongeLaunch {
                     .log(SpongeImpl.getLogger(), Level.FATAL);
             TerminateVM.terminate("net.minecraftforge.fml", -1);
         }
+    }
 
-        // Register common mixin configurations
-        Mixins.addConfiguration("mixins.common.api.json");
-        Mixins.addConfiguration("mixins.common.bungeecord.json");
-        Mixins.addConfiguration("mixins.common.concurrentchecks.json");
-        Mixins.addConfiguration("mixins.common.core.json");
-        Mixins.addConfiguration("mixins.common.entityactivation.json");
-        Mixins.addConfiguration("mixins.common.entitycollisions.json");
-        Mixins.addConfiguration("mixins.common.exploit.json");
-        Mixins.addConfiguration("mixins.common.movementchecks.json");
-        Mixins.addConfiguration("mixins.common.multi-world-command.json");
-        Mixins.addConfiguration("mixins.common.optimization.json");
-        Mixins.addConfiguration("mixins.common.realtime.json");
-        Mixins.addConfiguration("mixins.common.tileentityactivation.json");
-        Mixins.addConfiguration("mixins.common.tracking.json");
-        Mixins.addConfiguration("mixins.common.vanilla-command.json");
+    public static String[] getCommonMixinConfigs() {
+        return new String[] {
+                "mixins.common.api.json", "mixins.common.bungeecord.json", "mixins.common.concurrentchecks.json",
+                "mixins.common.core.json", "mixins.common.entityactivation.json", "mixins.common.entitycollisions.json",
+                "mixins.common.exploit.json", "mixins.common.movementchecks.json",
+                "mixins.common.multi-world-command.json", "mixins.common.optimization.json",
+                "mixins.common.realtime.json", "mixins.common.tileentityactivation.json",
+                "mixins.common.tracking.json", "mixins.common.vanilla-command.json"
+        };
     }
 
     public static void setupSuperClassTransformer() {

@@ -2,7 +2,7 @@
     "required": true,
     "minVersion": "0.8",
     "package": "org.spongepowered.common.mixin.core",
-    "refmap": "mixins.common.refmap.json",
+    "refmap": "mixins.spongeforge.refmap.json",
     "plugin": "org.spongepowered.common.mixin.plugin.CorePlugin",
     "target": "@env(DEFAULT)",
     "compatibilityLevel": "JAVA_8",

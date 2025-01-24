@@ -28,19 +28,20 @@ import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.relauncher.FMLInjectionData;
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.MixinEnvironment.Phase;
 import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.extensibility.IEnvironmentTokenProvider;
 import org.spongepowered.common.launch.SpongeLaunch;
+import zone.rong.mixinbooter.IEarlyMixinLoader;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.util.Map;
+import java.util.*;
 
 @IFMLLoadingPlugin.MCVersion("1.12.2")
-public class SpongeCoremod implements IFMLLoadingPlugin {
+public class SpongeCoremod implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     static File modFile;
 
@@ -80,23 +81,10 @@ public class SpongeCoremod implements IFMLLoadingPlugin {
             Mixins.registerErrorHandlerClass("org.spongepowered.mod.mixin.handler.MixinErrorHandler");
         }
 
-        Mixins.addConfiguration("mixins.forge.api.json");
-        Mixins.addConfiguration("mixins.forge.core.json");
-        Mixins.addConfiguration("mixins.forge.brokenmods.json");
-        Mixins.addConfiguration("mixins.forge.bungeecord.json");
-        Mixins.addConfiguration("mixins.forge.entityactivation.json");
-        Mixins.addConfiguration("mixins.forge.optimization.json");
-
         MixinEnvironment.getDefaultEnvironment().registerTokenProviderClass("org.spongepowered.mod.SpongeCoremod$TokenProvider");
 
         // Add pre-init mixins
-
-        Mixins.addConfiguration("mixins.forge.preinit.json");
-        Mixins.addConfiguration("mixins.forge.api.preinit.json");
         MixinEnvironment.getEnvironment(Phase.PREINIT).registerTokenProviderClass("org.spongepowered.mod.SpongeCoremod$TokenProvider");
-
-
-        Mixins.addConfiguration("mixins.forge.init.json");
         MixinEnvironment.getEnvironment(Phase.INIT).registerTokenProviderClass("org.spongepowered.mod.SpongeCoremod$TokenProvider");
 
         Launch.classLoader.addClassLoaderExclusion("org.spongepowered.api.event.Cancellable");
@@ -110,7 +98,7 @@ public class SpongeCoremod implements IFMLLoadingPlugin {
         Launch.classLoader.addTransformerExclusion("org.spongepowered.common.event.tracking.PhaseTracker");
         Launch.classLoader.addTransformerExclusion("org.spongepowered.common.event.tracking.TrackingUtil");
         Launch.classLoader.addTransformerExclusion("org.spongepowered.common.mixin.handler.TerminateVM");
-        Launch.classLoader.addTransformerExclusion("scala.");
+        // Launch.classLoader.addTransformerExclusion("scala.");
 
         SpongeLaunch.setupSuperClassTransformer();
 
@@ -123,27 +111,28 @@ public class SpongeCoremod implements IFMLLoadingPlugin {
     }
 
     private boolean isProductionEnvironment() {
-        return System.getProperty("net.minecraftforge.gradle.GradleStart.csvDir") == null;
+        return !FMLLaunchHandler.isDeobfuscatedEnvironment();
     }
 
-    private void clearSecurityManager() {
-        // Nice try, FML
-        try {
-            Field field = System.class.getDeclaredField("security");
-            field.setAccessible(true);
-            field.set(null, null);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
+    @Override
+    public List<String> getMixinConfigs() {
+
+        List<String> configs = new ArrayList<>(Arrays.asList(SpongeLaunch.getCommonMixinConfigs()));
+
+        configs.add("mixins.forge.api.json");
+        configs.add("mixins.forge.core.json");
+        configs.add("mixins.forge.brokenmods.json");
+        configs.add("mixins.forge.bungeecord.json");
+        configs.add("mixins.forge.entityactivation.json");
+        configs.add("mixins.forge.optimization.json");
+        configs.add("mixins.forge.preinit.json");
+        configs.add("mixins.forge.api.preinit.json");
+        return configs;
     }
 
     @Override
     public String[] getASMTransformerClass() {
-        return new String[] {
-                SpongeLaunch.SUPERCLASS_TRANSFORMER
-        };
+        return new String[] { SpongeLaunch.SUPERCLASS_TRANSFORMER };
     }
 
     @Override
@@ -158,14 +147,11 @@ public class SpongeCoremod implements IFMLLoadingPlugin {
 
     @Override
     public void injectData(Map<String, Object> data) {
-        // Register SpongeAPI mod container
+        modFile = (File) data.get("coremodLocation");
+
+        // Register SpongeAPI + SpongeCommon ModContainers
         FMLInjectionData.containers.add("org.spongepowered.mod.SpongeApiModContainer");
         FMLInjectionData.containers.add("org.spongepowered.mod.SpongeCommonModContainer");
-
-        modFile = (File) data.get("coremodLocation");
-        if (modFile == null) {
-            modFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
-        }
     }
 
     @Override

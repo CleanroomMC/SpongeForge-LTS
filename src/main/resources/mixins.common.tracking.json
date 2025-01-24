@@ -1,7 +1,7 @@
 {
     "minVersion": "0.8",
     "package": "org.spongepowered.common.mixin.tracking",
-    "refmap": "mixins.common.refmap.json",
+    "refmap": "mixins.spongeforge.refmap.json",
     "plugin": "org.spongepowered.common.mixin.plugin.TrackingPlugin",
     "mixinPriority" : 1111,
     "mixins": [

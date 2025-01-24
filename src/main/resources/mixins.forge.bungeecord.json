@@ -2,7 +2,7 @@
   "minVersion": "0.8",
   "package": "org.spongepowered.mod.mixin.bungee",
   "plugin": "org.spongepowered.mod.mixin.plugin.bungee.BungeePlugin",
-  "refmap": "mixins.forge.refmap.json",
+  "refmap": "mixins.spongeforge.refmap.json",
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
