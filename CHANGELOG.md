@@ -1,6 +1,10 @@
 # Changelog
 
-## [1.0.0] - 2023-09-15
+## [7.5.0] - 2025-06-03
 
 ### Added
-- This is a default template changelog that follows the [KeepAChangelog Convention](https://keepachangelog.com/en/1.1.0/)
+- First release
+
+### Fixed
+- MixinBooter compatibility
+- Cleanroom compatibility
