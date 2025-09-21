@@ -113,8 +113,7 @@ public abstract class BlockFluidClassicMixin_Forge extends BlockFluidBaseMixin_F
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)Z"
-        ),
-        constraints = "FORGE(2821+)"
+        )
     )
     private boolean afterCanFlowInto(
         final World targetWorld, final BlockPos targetPos, final IBlockState newLiquidState, final World world, final BlockPos pos, final int meta) {

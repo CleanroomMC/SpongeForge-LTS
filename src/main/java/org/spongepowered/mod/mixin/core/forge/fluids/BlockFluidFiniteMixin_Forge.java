@@ -181,8 +181,7 @@ public abstract class BlockFluidFiniteMixin_Forge extends BlockFluidBaseMixin_Fo
             )
         ),
         locals = LocalCapture.CAPTURE_FAILSOFT,
-        cancellable = true,
-        constraints = "FORGE(2821+)"
+        cancellable = true
     )
     private void setNewStateWithMaximumQuantaWhileFlowing(final World world, final BlockPos pos, final int amtToInput, final CallbackInfoReturnable<Integer> cir, final IBlockState myState, final BlockPos other, final int newAmount) {
         if (((WorldBridge) world).bridge$isFake() || !ShouldFire.CHANGE_BLOCK_EVENT_PRE) {
@@ -253,8 +252,7 @@ public abstract class BlockFluidFiniteMixin_Forge extends BlockFluidBaseMixin_Fo
                     ordinal = 0
                 )
             )
-        },
-        constraints = "FORGE(2821+)"
+        }
     )
     private void onSetBlockForSwapping(final World world, final BlockPos myPos, final int amtToInput, final CallbackInfoReturnable<Integer> cir,
         final IBlockState myState, final BlockPos other, final int amt, final int density_other, final IBlockState otherState) {
