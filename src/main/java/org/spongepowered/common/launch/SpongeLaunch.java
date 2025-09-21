@@ -28,9 +28,7 @@ import static org.spongepowered.common.SpongeImpl.ECOSYSTEM_ID;
 
 import net.minecraft.launchwrapper.Launch;
 import org.spongepowered.asm.logging.Level;
-import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
-import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.util.PrettyPrinter;
 import org.spongepowered.asm.util.VersionNumber;
 import org.spongepowered.common.SpongeImpl;

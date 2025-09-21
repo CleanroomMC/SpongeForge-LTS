@@ -98,7 +98,7 @@ public abstract class ExplosionMixin implements ExplosionBridge {
     @Shadow @Final private Entity exploder;
     @Shadow @Final private float size;
 
-    @Inject(method = "<init>*", at = @At("RETURN"))
+    @Inject(method = "<init>*", at = @At("RETURN"), remap = false)
     private void onConstructed(final net.minecraft.world.World world, final Entity entity, final double originX, final double originY,
             final double originZ, final float radius, final boolean isFlaming, final boolean isSmoking,
             final CallbackInfo ci) {
