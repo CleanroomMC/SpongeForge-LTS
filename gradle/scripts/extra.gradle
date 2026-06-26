@@ -1,21 +1,45 @@
 // You may write any gradle buildscript component in this file
 // This file is automatically applied after build.gradle + dependencies.gradle is ran
 
-// If you wish to use the default helper methods, uncomment the line below
-// apply from: 'gradle/scripts/helpers.gradle'
+apply from: 'gradle/scripts/helpers.gradle'
 
-tasks.register('stripFinalFromItemStackClass') {
-    dependsOn 'setupDecompWorkspace'
+def originalMethodCsv = tasks.named('remapDecompiledJar').get().methodCsv.get().asFile
+def patchedMethodCsv = layout.buildDirectory.file('rfg/methods_no_getgroup.csv')
+def patchMethodCsvTask = tasks.register('patchMethodCsvNoGetGroup') {
+    inputs.file(originalMethodCsv)
+    outputs.file(patchedMethodCsv)
     doLast {
-        if (change_minecraft_sources) {
-            def classFile = file('build/rfg/minecraft-src/java/net/minecraft/item/ItemStack.java')
-            def text = classFile.text
-            text = text.replace('\npublic final class ItemStack', '\npublic class ItemStack')
-            classFile.text = text
+        def out = patchedMethodCsv.get().asFile
+        out.parentFile.mkdirs()
+        out.withWriter('UTF-8') { w ->
+            originalMethodCsv.eachLine('UTF-8') { line ->
+                if (!line.startsWith('func_193358_e,getGroup,')) {
+                    w.writeLine(line)
+                }
+            }
+        }
+    }
+}
+tasks.named('remapDecompiledJar').configure {
+    dependsOn patchMethodCsvTask
+    methodCsv.set(patchedMethodCsv)
+}
+
+if (propertyBool('use_access_transformer')) {
+    tasks.named('applyJST').configure {
+        for (def location : propertyStringList('access_transformer_locations')) {
+            def atFile = file("${projectDir}/src/main/resources/${location}")
+            if (atFile.exists()) {
+                accessTransformerFiles.from(atFile)
+            }
         }
     }
 }
 
-tasks.named('setupDecompWorkspace') {
-    finalizedBy 'stripFinalFromItemStackClass'
+if (propertyBool('use_mixins')) {
+    jar {
+        manifest {
+            attributes 'MixinConfigs': propertyString('mixin_configs').replaceAll('\\s', '')
+        }
+    }
 }

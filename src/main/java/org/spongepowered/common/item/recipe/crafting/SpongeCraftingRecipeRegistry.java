@@ -128,8 +128,10 @@ public class SpongeCraftingRecipeRegistry implements CraftingRecipeRegistry, Spo
 
     @Override
     public void registerAdditionalCatalog(CraftingRecipe recipe) {
-        IRecipe iRecipe = recipe instanceof IRecipe ? (IRecipe) recipe : new DelegateSpongeCraftingRecipe(recipe);
-        SpongeImplHooks.register(iRecipe.getRegistryName(), iRecipe);
+        if (!(recipe instanceof IRecipe)) {
+            recipe = new DelegateSpongeCraftingRecipe(recipe);
+        }
+        SpongeImplHooks.register(new ResourceLocation(recipe.getId()), (IRecipe) recipe);
     }
 
     private static final class Holder {

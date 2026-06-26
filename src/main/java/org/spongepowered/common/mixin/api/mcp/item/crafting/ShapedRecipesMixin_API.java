@@ -29,30 +29,35 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.util.NonNullList;
 import org.spongepowered.api.item.recipe.crafting.ShapedCraftingRecipe;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(ShapedRecipes.class)
-@Implements(value = @Interface(iface = ShapedCraftingRecipe.class, prefix = "recipe$"))
-public abstract class ShapedRecipesMixin_API implements IRecipe {
+public abstract class ShapedRecipesMixin_API implements IRecipe, ShapedCraftingRecipe {
 
     @Shadow @Final public int recipeWidth;
     @Shadow @Final public int recipeHeight;
     @Shadow @Final public NonNullList<Ingredient> recipeItems;
 
-    public org.spongepowered.api.item.recipe.crafting.Ingredient recipe$getIngredient(final int x, final int y) {
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public org.spongepowered.api.item.recipe.crafting.Ingredient getIngredient(final int x, final int y) {
         if (x < 0 || x >= this.recipeWidth || y < 0 || y >= this.recipeHeight) {
             throw new IndexOutOfBoundsException("Invalid ingredient predicate location");
         }
 
         final int recipeItemIndex = x + y * this.recipeWidth;
-        return ((org.spongepowered.api.item.recipe.crafting.Ingredient)(Object) this.recipeItems.get(recipeItemIndex));
+        return ((org.spongepowered.api.item.recipe.crafting.Ingredient) (Object) this.recipeItems.get(recipeItemIndex));
     }
 
-    public int recipe$getWidth() {
+    @Override
+    public int getWidth() {
         return this.recipeWidth;
     }
 
-    public int recipe$getHeight() {
+    @Override
+    public int getHeight() {
         return this.recipeHeight;
     }
 
