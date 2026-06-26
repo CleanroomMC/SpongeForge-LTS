@@ -333,7 +333,7 @@ public class SpongeCommonEventFactory {
             printer.add();
             printer.add("Exception:");
             printer.add(e);
-            printer.log(SpongeImpl.getLogger(), Level.ERROR);
+            printer.log(SpongeImpl.getMixinLogger(), Level.ERROR);
             for (final Entity entity : entities) {
                 EntityUtil.processEntitySpawn(entity, EntityUtil.ENTITY_CREATOR_FUNCTION.apply(context));
             }

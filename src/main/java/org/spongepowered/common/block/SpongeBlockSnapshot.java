@@ -229,7 +229,7 @@ public class SpongeBlockSnapshot implements BlockSnapshot {
                             .add("Position: " + this.pos)
                             .add("Desired BlockState: " + this.blockState);
                         printer.add();
-                        printer.log(SpongeImpl.getLogger(), Level.ERROR);
+                        printer.log(SpongeImpl.getMixinLogger(), Level.ERROR);
                         return true; // I mean, I guess. the block was set up, but not the tile entity.
                     }
 
