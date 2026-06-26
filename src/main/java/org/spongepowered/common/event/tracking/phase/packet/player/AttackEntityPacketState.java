@@ -117,7 +117,7 @@ public final class AttackEntityPacketState extends BasicPacketState {
                 printer.addWrapped(60, "%s : %s", "Items captured", items);
                 printer.add("Stacktrace:");
                 printer.add(new Exception("Stack trace"));
-                printer.trace(System.err, SpongeImpl.getLogger(), Level.TRACE);
+                printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.TRACE);
             });
         // TODO - Determine if we need to pass the supplier or perform some parameterized
         //  process if not empty method on the capture object.

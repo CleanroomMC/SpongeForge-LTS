@@ -28,7 +28,6 @@ import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.binder.AnnotatedBindingBuilder;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Game;
@@ -50,8 +49,6 @@ import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.service.SimpleServiceManager;
 import org.spongepowered.api.util.metric.MetricsConfigManager;
 import org.spongepowered.api.world.TeleportHelper;
-import org.spongepowered.asm.logging.ILogger;
-import org.spongepowered.asm.service.MixinService;
 import org.spongepowered.common.SpongeBootstrap;
 import org.spongepowered.common.SpongeGame;
 import org.spongepowered.common.SpongeImpl;
@@ -95,9 +92,8 @@ public class SpongeImplementationModule extends PrivateModule {
         this.expose(EventManager.class);
         this.expose(ChannelRegistrar.class);
 
-        this.bind(ILogger.class).toInstance(SpongeImpl.getLogger());
-        this.bind(Logger.class).toInstance(LogManager.getLogger("Sponge"));
-        this.bind(org.slf4j.Logger.class).toInstance(LoggerFactory.getLogger(SpongeImpl.getLogger().getId()));
+        this.bind(Logger.class).toInstance(SpongeImpl.getLogger());
+        this.bind(org.slf4j.Logger.class).toInstance(LoggerFactory.getLogger(SpongeImpl.getLogger().getName()));
 
         this.requestStaticInjection(SpongeImpl.class);
         this.requestStaticInjection(Sponge.class);

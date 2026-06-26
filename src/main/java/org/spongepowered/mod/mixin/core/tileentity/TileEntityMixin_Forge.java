@@ -97,7 +97,7 @@ public abstract class TileEntityMixin_Forge implements DataCompoundHolder {
                     .add("Please remember, this isn't a sponge bug, it's sponge exposing a bug with a mod.")
                     .add();
                 PhaseTracker.printPhaseStackWithException(PhaseTracker.getInstance(), printer, error);
-                printer.log(SpongeImpl.getLogger(), Level.WARN);
+                printer.log(SpongeImpl.getMixinLogger(), Level.WARN);
             }
             this.customTileData = new NBTTagCompound();
             return this.customTileData;

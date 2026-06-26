@@ -198,7 +198,7 @@ public abstract class ItemStackMixin_API implements DataHolder {       // confli
             printer.add("Please ask help for seeing if this is an issue with a mod and report it!");
             printer.add("Printing a Stacktrace:");
             printer.add(new Exception());
-            printer.log(SpongeImpl.getLogger(), Level.WARN);
+            printer.log(SpongeImpl.getMixinLogger(), Level.WARN);
             return manipulators;
         }
         ((ItemBridge) item).bridge$gatherManipulators((net.minecraft.item.ItemStack) (Object) this, manipulators);

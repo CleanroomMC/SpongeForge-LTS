@@ -245,7 +245,7 @@ public final class PhaseTracker {
                     .addWrapped(ASYNC_TRACKER_ACCESS)
                     .add()
                     .add(new Exception("Async Block Change Detected"))
-                    .log(SpongeImpl.getLogger(), Level.ERROR);
+                    .log(SpongeImpl.getMixinLogger(), Level.ERROR);
             // Maybe? I don't think this is wise.
             return;
         }
@@ -275,7 +275,7 @@ public final class PhaseTracker {
                     .addWrapped(ASYNC_TRACKER_ACCESS)
                     .add()
                     .add(new Exception("Async Block Change Detected"))
-                    .log(SpongeImpl.getLogger(), Level.ERROR);
+                    .log(SpongeImpl.getMixinLogger(), Level.ERROR);
             return;
         }
         final PhaseContext<?> currentContext = this.stack.peek();
@@ -361,7 +361,7 @@ public final class PhaseTracker {
         printer.addWrapped(60, "%s : %s", "Completing phase", state);
         printer.add(" Phases Remaining:");
         printPhaseStackWithException(this, printer, new Exception("RunawayPhase"));
-        printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+        printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
         if (!SpongeImpl.getGlobalConfigAdapter().getConfig().getPhaseTracker().isVerbose() && this.printRunawayCount++ > 3) {
             this.hasPrintedAboutRunnawayPhases = true;
         }
@@ -399,7 +399,7 @@ public final class PhaseTracker {
                 .add(new Exception());
         printer.add(" Phases Remaining:");
         printPhaseStackWithException(this, printer, new Exception("Incorrect Phase Completion"));
-        printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+        printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
         if (!SpongeImpl.getGlobalConfigAdapter().getConfig().getPhaseTracker().isVerbose()) {
             this.completedIncorrectStates.add(new Tuple<>(prevState, state));
         }
@@ -425,7 +425,7 @@ public final class PhaseTracker {
         PHASE_PRINTER.accept(printer, context);
         printer.add();
         this.generateVersionInfo(printer);
-        printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+        printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
         if (!SpongeImpl.getGlobalConfigAdapter().getConfig().getPhaseTracker().isVerbose()) {
             this.hasPrintedEmptyOnce = true;
         }
@@ -443,7 +443,7 @@ public final class PhaseTracker {
         CONTEXT_PRINTER.accept(printer, context);
         printer.addWrapped(60, "%s :", "Phases remaining");
         printPhaseStackWithException(this, printer, new Exception("RunawayPhase"));
-        printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+        printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
         if (!SpongeImpl.getGlobalConfigAdapter().getConfig().getPhaseTracker().isVerbose() && this.printRunawayCount++ > SpongeImpl.getGlobalConfigAdapter().getConfig().getPhaseTracker().getMaximumRunawayCount()) {
             this.hasPrintedAboutRunnawayPhases = true;
         }
@@ -469,7 +469,7 @@ public final class PhaseTracker {
 
         printPhaseStackWithException(instance, printer, e);
         printer
-                .log(SpongeImpl.getLogger(), Level.WARN);
+                .log(SpongeImpl.getMixinLogger(), Level.WARN);
     }
 
 
@@ -492,7 +492,7 @@ public final class PhaseTracker {
                 .add("%s : %s", "Notified Position", otherPos);
         printPhaseStackWithException(instance, printer, e);
         printer
-                .log(SpongeImpl.getLogger(), Level.WARN);
+                .log(SpongeImpl.getMixinLogger(), Level.WARN);
     }
 
     public static void printNullSourceBlockNeighborNotificationWithNoTileSource(final BlockPos pos, final Block blockIn, final BlockPos otherPos,
@@ -513,7 +513,7 @@ public final class PhaseTracker {
                 .add("%s : %s", "Notified Position", otherPos);
         printPhaseStackWithException(instance, printer, e);
         printer
-                .log(SpongeImpl.getLogger(), Level.WARN);
+                .log(SpongeImpl.getMixinLogger(), Level.WARN);
     }
 
     public static void printPhaseStackWithException(final PhaseTracker instance, final PrettyPrinter printer, final Throwable e) {
@@ -547,7 +547,7 @@ public final class PhaseTracker {
         }
         printer.add();
         this.generateVersionInfo(printer);
-        printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+        printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
     }
 
     public void printExceptionFromPhase(final Throwable e, final PhaseContext<?> context) {
@@ -568,7 +568,7 @@ public final class PhaseTracker {
                 .add(context.printCustom(printer, 4));
         printPhaseStackWithException(this, printer, e);
 
-        printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+        printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
         if (!SpongeImpl.getGlobalConfigAdapter().getConfig().getPhaseTracker().isVerbose()) {
             this.printedExceptionsForState.add(context.state);
         }
@@ -600,7 +600,7 @@ public final class PhaseTracker {
         }
         final PrettyPrinter printer = new PrettyPrinter(60).add("Exception attempting to capture a block change!").centre().hr();
         printPhasestack(phaseData, e, printer);
-        printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+        printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
         if (!SpongeImpl.getGlobalConfigAdapter().getConfig().getPhaseTracker().isVerbose()) {
             this.printedExceptionsForBlocks.add(phaseState);
         }
@@ -634,7 +634,7 @@ public final class PhaseTracker {
                 .add()
                 .add("StackTrace:")
                 .add(new Exception())
-                .trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+                .trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
     }
 
     private void printExceptionSpawningEntity(final PhaseContext<?> context, final Throwable e) {
@@ -645,7 +645,7 @@ public final class PhaseTracker {
         }
         final PrettyPrinter printer = new PrettyPrinter(60).add("Exception attempting to capture or spawn an Entity!").centre().hr();
         printPhasestack(context, e, printer);
-        printer.log(SpongeImpl.getLogger(), Level.ERROR);
+        printer.log(SpongeImpl.getMixinLogger(), Level.ERROR);
         if (!SpongeImpl.getGlobalConfigAdapter().getConfig().getPhaseTracker().isVerbose()) {
             this.printedExceptionsForEntities.add(context.state);
         }
@@ -754,7 +754,7 @@ public final class PhaseTracker {
                     .addWrapped(ASYNC_TRACKER_ACCESS)
                     .add()
                     .add(new Exception("Async Block Notifcation Detected"))
-                    .log(SpongeImpl.getLogger(), Level.ERROR);
+                    .log(SpongeImpl.getMixinLogger(), Level.ERROR);
             // Maybe? I don't think this is wise to try and sync back a notification on the main thread.
             return;
         }
@@ -842,7 +842,7 @@ public final class PhaseTracker {
                             + "lead to further issues, not just with sponge or plugins, but other mods as well.")
                     .add()
                     .add(new Exception("Async Block Change Detected"))
-                    .log(SpongeImpl.getLogger(), Level.ERROR);
+                    .log(SpongeImpl.getMixinLogger(), Level.ERROR);
             return false;
         }
         final SpongeBlockChangeFlag spongeFlag = (SpongeBlockChangeFlag) flag;
@@ -1207,7 +1207,7 @@ public final class PhaseTracker {
                     .add("%s : %s", "Entity", entity)
                     .add("Stacktrace")
                     .add(new Exception("Async entity spawn attempt"))
-                    .trace(SpongeImpl.getLogger(), Level.WARN);
+                    .trace(SpongeImpl.getMixinLogger(), Level.WARN);
             PhaseTracker.getInstance().hasPrintedAsyncEntities = true;
             return true;
         }
@@ -1237,7 +1237,7 @@ public final class PhaseTracker {
                 .add("%s : %s", "Entity", entity)
                 .add("Stacktrace")
                 .add(new Exception("Async entity spawn attempt"))
-                .trace(SpongeImpl.getLogger(), Level.WARN);
+                .trace(SpongeImpl.getMixinLogger(), Level.WARN);
         PhaseTracker.getInstance().hasPrintedAsyncEntities = true;
 
 
@@ -1280,7 +1280,7 @@ public final class PhaseTracker {
             this.stack.forEach(data -> PHASE_PRINTER.accept(printer, data));
             printer.add();
             this.generateVersionInfo(printer);
-            printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+            printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
 
             while (!this.stack.isEmpty()) {
                 this.getCurrentContext().close();

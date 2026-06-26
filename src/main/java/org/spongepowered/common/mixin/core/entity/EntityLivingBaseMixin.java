@@ -391,7 +391,7 @@ public abstract class EntityLivingBaseMixin extends EntityMixin implements Livin
                             + " stacktrace to the most appropriate mod/plugin available.")
                 .add()
                 .add(new IllegalArgumentException("Null DamageSource"))
-                .log(SpongeImpl.getLogger(), Level.WARN);
+                .log(SpongeImpl.getMixinLogger(), Level.WARN);
             return false;
         }
         // Sponge - This hook is for forge use mainly

@@ -142,20 +142,12 @@ public class SpongeLaunch {
                     .add("The minimum version of Mixin Sponge requires is: %s", required.toString())
                     .add("but the currently loaded version is:             %s", environment.toString())
                     .add()
-                    .log(SpongeImpl.getLogger(), Level.FATAL);
+                    .log(SpongeImpl.getMixinLogger(), Level.FATAL);
             TerminateVM.terminate("net.minecraftforge.fml", -1);
         }
-    }
 
-    public static String[] getCommonMixinConfigs() {
-        return new String[] {
-                "mixins.common.api.json", "mixins.common.bungeecord.json", "mixins.common.concurrentchecks.json",
-                "mixins.common.core.json", "mixins.common.entityactivation.json", "mixins.common.entitycollisions.json",
-                "mixins.common.exploit.json", "mixins.common.movementchecks.json",
-                "mixins.common.multi-world-command.json", "mixins.common.optimization.json",
-                "mixins.common.realtime.json", "mixins.common.tileentityactivation.json",
-                "mixins.common.tracking.json", "mixins.common.vanilla-command.json"
-        };
+        // Common mixin configurations are now declared via the MixinConfigs manifest attribute
+        // and registered by MixinBooter, so they are no longer added programmatically here.
     }
 
     public static void setupSuperClassTransformer() {

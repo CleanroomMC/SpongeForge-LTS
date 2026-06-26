@@ -28,13 +28,11 @@ import com.google.common.collect.ImmutableSet;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.common.ForgeVersion;
-import org.spongepowered.asm.logging.ILogger;
 import org.spongepowered.asm.logging.Level;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfig;
 import org.spongepowered.asm.mixin.extensibility.IMixinErrorHandler;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import org.spongepowered.asm.mixin.transformer.throwables.MixinTargetAlreadyLoadedException;
-import org.spongepowered.asm.service.MixinService;
 import org.spongepowered.asm.util.ConstraintParser;
 import org.spongepowered.asm.util.PrettyPrinter;
 import org.spongepowered.asm.util.throwables.ConstraintViolationException;
@@ -46,19 +44,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Error handler for Sponge mixins
+ * Error handler for Sponge mixins. TODO: Get rid of Forge version warnings
  */
 @SuppressWarnings({"deprecation", "unused"}) // This class is registered in SpongeCoremod
 public class MixinErrorHandler implements IMixinErrorHandler {
-
-    /**
-     * Everyone wants a Log
-     * You're gonna love it, Log!
-     * Come on and get your Log
-     * Everyone needs a Log
-     * Log, Log, Log!
-     */
-    private final ILogger log = MixinService.getService().getLogger("Sponge");
 
     private PrettyPrinter forgeVersionNotValid(final ConstraintParser.Constraint constraint) {
         final String forgeVer = "2860";
@@ -170,7 +159,7 @@ public class MixinErrorHandler implements IMixinErrorHandler {
             if (th instanceof MixinTargetAlreadyLoadedException) {
                 targetClassName = ((MixinTargetAlreadyLoadedException) th).getTarget();
             }
-            this.appendTechnicalInfo(errorPrinter, targetClassName, th, mixin).log(this.log);
+            this.appendTechnicalInfo(errorPrinter, targetClassName, th, mixin).log(SpongeImpl.getMixinLogger());
             TerminateVM.terminate("net.minecraftforge.fml", -1);
         }
         return null;
@@ -195,11 +184,11 @@ public class MixinErrorHandler implements IMixinErrorHandler {
                             + "for your consideration, and have a nice day!")
                 .add()
                 .add(new IncompatibleClassChangeError("FoamFix Incompatibility Detected"))
-                .log(SpongeImpl.getLogger(), Level.FATAL);
+                .log(SpongeImpl.getMixinLogger(), Level.FATAL);
             TerminateVM.terminate("net.minecraftforge.fml", 1);
         }
         if (action == ErrorAction.ERROR && mixin.getConfig().getMixinPackage().startsWith("org.spongepowered.")) {
-            this.appendTechnicalInfo(this.getPrettyPrinter(th), targetClassName, th, mixin).log(this.log);
+            this.appendTechnicalInfo(this.getPrettyPrinter(th), targetClassName, th, mixin).log(SpongeImpl.getMixinLogger());
             TerminateVM.terminate("net.minecraftforge.fml", -1);
         }
 

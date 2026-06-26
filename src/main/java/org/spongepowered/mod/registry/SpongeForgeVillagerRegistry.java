@@ -194,7 +194,7 @@ public final class SpongeForgeVillagerRegistry {
                 .add(" %s + %s = %s", recipe.getItemToBuy(), recipe.getSecondItemToBuy(), recipe.getItemToSell());
         }
 
-        printer.log(SpongeImpl.getLogger(), Level.ERROR);
+        printer.log(SpongeImpl.getMixinLogger(), Level.ERROR);
     }
 
     private static void printMismatch(
@@ -219,6 +219,6 @@ public final class SpongeForgeVillagerRegistry {
         }
         printer.add();
         printer.add("Villager career id attempted: " + careerNumberId);
-        printer.log(SpongeImpl.getLogger(), Level.ERROR);
+        printer.log(SpongeImpl.getMixinLogger(), Level.ERROR);
     }
 }

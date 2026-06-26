@@ -152,7 +152,7 @@ public class CorePlugin implements IMixinConfigPlugin {
                         + "for your consideration, and have a nice day!")
             .add()
             .add(new IncompatibleClassChangeError("FoamFix Incompatibility Detected"))
-            .log(SpongeImpl.getLogger(), Level.FATAL);
+            .log(SpongeImpl.getMixinLogger(), Level.FATAL);
         TerminateVM.terminate("net.minecraftforge.fml", 1);
     }
 

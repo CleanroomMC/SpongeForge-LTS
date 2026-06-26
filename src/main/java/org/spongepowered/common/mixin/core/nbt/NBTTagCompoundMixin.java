@@ -84,7 +84,7 @@ public abstract class NBTTagCompoundMixin extends NBTBase {
                 }
             }
             printer.add();
-            printer.log(SpongeImpl.getLogger(), Level.ERROR);
+            printer.log(SpongeImpl.getMixinLogger(), Level.ERROR);
             return null;
         }
     }

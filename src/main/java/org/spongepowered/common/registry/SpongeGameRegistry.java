@@ -190,7 +190,7 @@ public class SpongeGameRegistry implements GameRegistry {
                 }
                 printer.hr();
             }
-            printer.trace(System.err, SpongeImpl.getLogger(), Level.DEBUG);
+            printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.DEBUG);
         }
     }
 

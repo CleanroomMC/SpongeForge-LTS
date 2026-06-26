@@ -231,7 +231,7 @@ public abstract class WorldInfoMixin implements WorldInfoBridge {
                 .addWrapped(60, " %s : %s", "WorldInfo", this)
                 .add()
                 .add(new Exception("Stacktrace"))
-                .log(SpongeImpl.getLogger(), Level.ERROR);
+                .log(SpongeImpl.getMixinLogger(), Level.ERROR);
             ci.cancel(); // We cannot let the null set the field.
             return;
         }

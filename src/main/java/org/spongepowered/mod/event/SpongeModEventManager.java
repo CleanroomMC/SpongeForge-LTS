@@ -402,7 +402,7 @@ public class SpongeModEventManager extends SpongeEventManager {
                         .add("%s: %s", "Owning Mod/Plugin", listener.getPlugin().getId())
                         .add("Exception:")
                         .add(e)
-                        .log(SpongeImpl.getLogger(), Level.WARN);
+                        .log(SpongeImpl.getMixinLogger(), Level.WARN);
             } finally {
                 listener.getTimingsHandler().stopTimingIfSync();
             }

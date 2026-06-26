@@ -392,7 +392,7 @@ public class SpongeMod extends MetaModContainer {
                 } else {
                     pp.add("%s: %s", "Actual Fingerprint", fingerprints.get(0));
                 }
-                pp.log(SpongeImpl.getLogger(), Level.ERROR);
+                pp.log(SpongeImpl.getMixinLogger(), Level.ERROR);
             } else {
                 this.certificate = certificates[fingerprints.indexOf(EXPECTED_CERTIFICATE_FINGERPRINT)];
             }

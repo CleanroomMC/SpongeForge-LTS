@@ -150,7 +150,7 @@ public abstract class WorldServerMixin_API extends WorldMixin_API {
                 .add("%s : %s", "World Name", this.getName())
                 .add("%s : %s", "Dimension", this.getProperties().getDimensionType())
                 .add("Please report this to sponge developers so they may potentially fix this")
-                .trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+                .trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
             return null;
         }
         return worldDirectory.toPath();

@@ -385,7 +385,7 @@ public abstract class ChunkMixin_Tracker implements ChunkBridge {
                     .add(" %s : %d, %d", "Chunk Pos", this.x, this.z)
                     .add()
                     .add(new Exception("Async Chunk Load Detected"))
-                    .log(SpongeImpl.getLogger(), Level.ERROR)
+                    .log(SpongeImpl.getMixinLogger(), Level.ERROR)
                     ;
                 return;
             }

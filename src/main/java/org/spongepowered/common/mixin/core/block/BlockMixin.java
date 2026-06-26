@@ -373,7 +373,7 @@ public abstract class BlockMixin implements BlockBridge, TrackableBridge, Timing
             printer
                 .add("Sponge will attempt to work around this by using the provided generated id:")
                 .add("%s : %s", "Generated ID", Arrays.toString(ids))
-                .log(SpongeImpl.getLogger(), Level.WARN);
+                .log(SpongeImpl.getMixinLogger(), Level.WARN);
 
         }
         final String modId = ids[0];

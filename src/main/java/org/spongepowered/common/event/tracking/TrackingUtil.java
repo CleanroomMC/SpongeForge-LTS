@@ -383,7 +383,7 @@ public final class TrackingUtil {
             printer.add("Stacktrace:");
             final IllegalStateException exception = new IllegalStateException(s + " Please analyze the current phase context. ");
             printer.add(exception);
-            printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+            printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
             return exception;
         };
     }

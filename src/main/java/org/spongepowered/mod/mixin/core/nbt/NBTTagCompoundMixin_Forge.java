@@ -61,7 +61,7 @@ public class NBTTagCompoundMixin_Forge {
             printer.add("Exception!");
             final PEBKACException pebkacException = new PEBKACException("Someone is trying to store a null to an NBTTagCompound!");
             printer.add(pebkacException);
-            printer.log(SpongeImpl.getLogger(), Level.ERROR);
+            printer.log(SpongeImpl.getMixinLogger(), Level.ERROR);
             try {
                 final Class<?> terminateVm = Class.forName("org.spongepowered.mixin.handler.TerminateVM");
                 final Method terminate = terminateVm.getMethod("terminate");

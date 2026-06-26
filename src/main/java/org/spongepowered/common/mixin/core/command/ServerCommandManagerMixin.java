@@ -126,7 +126,7 @@ public abstract class ServerCommandManagerMixin extends CommandHandler implement
                         .add("%s : %s", "Sender", sender.getDisplayName() == null ? "null" : sender.getDisplayName().getUnformattedText())
                         .add("Stacktrace")
                         .add(new Exception("Async Command Executor"))
-                        .trace(SpongeImpl.getLogger(), Level.WARN);
+                        .trace(SpongeImpl.getMixinLogger(), Level.WARN);
                 }
                 return 0;
             }
@@ -149,7 +149,7 @@ public abstract class ServerCommandManagerMixin extends CommandHandler implement
                         .add("%s : %s", "Sender", sender == null || sender.getDisplayName() == null ? "null" : sender.getDisplayName().getUnformattedText())
                         .add("Stacktrace")
                         .add(new Exception("Async Command Executor"))
-                        .trace(SpongeImpl.getLogger(), Level.WARN);
+                        .trace(SpongeImpl.getMixinLogger(), Level.WARN);
                 }
 
             }

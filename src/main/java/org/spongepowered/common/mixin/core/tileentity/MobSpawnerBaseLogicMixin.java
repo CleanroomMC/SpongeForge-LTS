@@ -97,7 +97,7 @@ public abstract class MobSpawnerBaseLogicMixin {
                 .add("%s : %s", "Entity Name", entityTypeString)
                 .add();
             PhaseTracker.getInstance().generateVersionInfo(printer);
-            printer.trace(System.err, SpongeImpl.getLogger(), Level.WARN);
+            printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.WARN);
             return null;
         }
         final EntityType type = EntityTypeRegistryModule.getInstance().getForClass(clazz);
