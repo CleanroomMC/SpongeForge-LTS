@@ -154,7 +154,7 @@ public final class SpongeProxyBlockAccess implements IBlockAccess, AutoCloseable
                 popProxy(f);
                 offset--;
             }
-            printer.trace(System.err, SpongeImpl.getLogger(), Level.ERROR);
+            printer.trace(System.err, SpongeImpl.getMixinLogger(), Level.ERROR);
             if (offset == -1) {
                 // Popping a proxy that was not on the stack is not recoverable
                 // so we throw an exception.

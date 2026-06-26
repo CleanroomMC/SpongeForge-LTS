@@ -26,30 +26,26 @@ package org.spongepowered.mod;
 
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.FMLInjectionData;
-import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
-import org.spongepowered.asm.mixin.MixinEnvironment;
-import org.spongepowered.asm.mixin.MixinEnvironment.Phase;
 import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.common.launch.SpongeLaunch;
-import zone.rong.mixinbooter.IEarlyMixinLoader;
+import zone.rong.mixinbooter.util.Environment;
 
 import java.io.File;
-import java.util.*;
+import java.util.Map;
 
 @IFMLLoadingPlugin.MCVersion("1.12.2")
-public class SpongeCoremod implements IFMLLoadingPlugin, IEarlyMixinLoader {
+public class SpongeCoremod implements IFMLLoadingPlugin {
 
     static File modFile;
 
     public SpongeCoremod() {
-//        SpongeLaunch.addJreExtensionsToClassPath();
+        SpongeLaunch.addJreExtensionsToClassPath();
 
         Launch.classLoader.addClassLoaderExclusion("org.slf4j.");
 
         // Let's get this party started
         SpongeLaunch.initPaths((File) FMLInjectionData.data()[6]); // 6 = game dir
-//        SpongeLaunch.setupMixinEnvironment();
 
         // Detect dev/production env
         if (this.isProductionEnvironment()) {
@@ -59,7 +55,6 @@ public class SpongeCoremod implements IFMLLoadingPlugin, IEarlyMixinLoader {
         Launch.classLoader.addClassLoaderExclusion("org.spongepowered.api.event.Cancellable");
         Launch.classLoader.addClassLoaderExclusion("org.spongepowered.api.eventgencore.annotation.PropertySettings");
         Launch.classLoader.addClassLoaderExclusion("org.spongepowered.api.util.ResettableBuilder");
-
         // Transformer exclusions
         Launch.classLoader.addTransformerExclusion("ninja.leaping.configurate.");
         Launch.classLoader.addTransformerExclusion("org.apache.commons.lang3.");
@@ -80,23 +75,7 @@ public class SpongeCoremod implements IFMLLoadingPlugin, IEarlyMixinLoader {
     }
 
     private boolean isProductionEnvironment() {
-        return !FMLLaunchHandler.isDeobfuscatedEnvironment();
-    }
-
-    @Override
-    public List<String> getMixinConfigs() {
-
-        List<String> configs = new ArrayList<>(Arrays.asList(SpongeLaunch.getCommonMixinConfigs()));
-
-        configs.add("mixins.forge.api.json");
-        configs.add("mixins.forge.core.json");
-        configs.add("mixins.forge.brokenmods.json");
-        configs.add("mixins.forge.bungeecord.json");
-        configs.add("mixins.forge.entityactivation.json");
-        configs.add("mixins.forge.optimization.json");
-        configs.add("mixins.forge.preinit.json");
-        configs.add("mixins.forge.api.preinit.json");
-        return configs;
+        return !Environment.inDev();
     }
 
     @Override
@@ -116,11 +95,11 @@ public class SpongeCoremod implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     @Override
     public void injectData(Map<String, Object> data) {
+        SpongeLaunch.setupMixinEnvironment();
         modFile = (File) data.get("coremodLocation");
-
-        // Register SpongeAPI + SpongeCommon ModContainers
-        FMLInjectionData.containers.add("org.spongepowered.mod.SpongeApiModContainer");
-        FMLInjectionData.containers.add("org.spongepowered.mod.SpongeCommonModContainer");
+        if (modFile == null) {
+            modFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        }
     }
 
     @Override

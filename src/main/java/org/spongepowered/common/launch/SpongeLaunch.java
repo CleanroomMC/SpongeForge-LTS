@@ -145,9 +145,6 @@ public class SpongeLaunch {
                     .log(SpongeImpl.getMixinLogger(), Level.FATAL);
             TerminateVM.terminate("net.minecraftforge.fml", -1);
         }
-
-        // Common mixin configurations are now declared via the MixinConfigs manifest attribute
-        // and registered by MixinBooter, so they are no longer added programmatically here.
     }
 
     public static void setupSuperClassTransformer() {

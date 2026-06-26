@@ -25,7 +25,6 @@
 package org.spongepowered.mod;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Guice;
@@ -33,21 +32,17 @@ import com.google.inject.Inject;
 import com.google.inject.Stage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.launchwrapper.Launch;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.fml.client.FMLFileResourcePack;
 import net.minecraftforge.fml.client.FMLFolderResourcePack;
-import net.minecraftforge.fml.common.CertificateHelper;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.ModContainerFactory;
-import net.minecraftforge.fml.common.ModMetadata;
 import net.minecraftforge.fml.common.event.FMLConstructionEvent;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
@@ -65,12 +60,8 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.spongepowered.asm.logging.Level;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.SubstituteLoggerFactory;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.command.CommandManager;
@@ -86,7 +77,6 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.permission.PermissionService;
 import org.spongepowered.api.service.sql.SqlService;
 import org.spongepowered.api.world.ChunkTicketManager;
-import org.spongepowered.asm.util.PrettyPrinter;
 import org.spongepowered.common.SpongeBootstrap;
 import org.spongepowered.common.SpongeGame;
 import org.spongepowered.common.SpongeImpl;
@@ -133,12 +123,10 @@ import org.spongepowered.mod.registry.SpongeGameData;
 import org.spongepowered.mod.service.permission.SpongePermissionHandler;
 import org.spongepowered.mod.service.world.SpongeChunkTicketManager;
 import org.spongepowered.mod.util.StaticMixinForgeHelper;
+import zone.rong.mixinbooter.util.Environment;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.cert.Certificate;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -147,8 +135,6 @@ public class SpongeMod extends MetaModContainer {
 
     public static SpongeMod instance;
     @Nullable public static Side side; // Platform side
-    private static boolean hasChecked = false;
-    private static boolean isClientSide = false;
 
     public static boolean isClientRunningServerAndServerThread() {
         if (isClient()) {
@@ -171,39 +157,17 @@ public class SpongeMod extends MetaModContainer {
     }
 
     public static boolean isClient() {
-        if (!hasChecked) {
-            hasChecked = true;
-            try {
-                Class.forName("net.minecraft.server.dedicated.DedicatedServer", false, SpongeMod.class.getClassLoader());
-                isClientSide = false;
-            } catch (ClassNotFoundException e) {
-                isClientSide = true;
-            }
-        }
-        return isClientSide;
+        return "CLIENT".equals(Environment.side());
     }
 
     @Inject private SpongeGame game;
     @Inject private SpongeScheduler scheduler;
-
     @Inject private Logger logger;
     private LoadController controller;
-
     private File modFile;
-    // treat this field as final
-    private static String EXPECTED_CERTIFICATE_FINGERPRINT = "@expected_certificate_fingerprint@";
-
-    private Certificate certificate;
-    // Updating
-
-    private @MonotonicNonNull URL updateJsonUrl;
-    // This is a special Mod, provided by the IFMLLoadingPlugin. It will be
-    // instantiated before FML scans the system for mods (or plugins)
 
     public SpongeMod() throws Exception {
         super(SpongeModMetadata.getSpongeForgeMetadata());
-
-        this.readMetadata();
 
         // Register our special instance creator with FML
         ModContainerFactory.instance().registerContainerType(Type.getType(Plugin.class), SpongeModPluginContainer.class);
@@ -213,7 +177,7 @@ public class SpongeMod extends MetaModContainer {
         this.modFile = SpongeCoremod.modFile;
 
         // Initialize Sponge
-        final Stage stage = SpongeGuice.getInjectorStage((Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment") ? Stage.DEVELOPMENT : Stage.PRODUCTION);
+        final Stage stage = SpongeGuice.getInjectorStage(Environment.inDev() ? Stage.DEVELOPMENT : Stage.PRODUCTION);
         // Do not replace `SpongeImpl.getLogger()` with `this.getLogger()`. You've been warned.
         SpongeImpl.getLogger().info("Creating injector in stage '{}'", stage);
         Guice.createInjector(stage, new SpongeModule(), new SpongeForgeModule());
@@ -311,17 +275,6 @@ public class SpongeMod extends MetaModContainer {
         SpongeImpl.getInternalPlugins().add((PluginContainer) ForgeModContainer.getInstance());
     }
 
-    private void readMetadata() {
-        final ModMetadata metadata = this.getMetadata();
-        if (!Strings.isNullOrEmpty(metadata.updateJSON)) {
-            try {
-                this.updateJsonUrl = new URL(metadata.updateJSON);
-            } catch (final MalformedURLException e) {
-                this.getLogger().warn("Encountered an exception while constructing version check data URL", e);
-            }
-        }
-    }
-
     @Override
     public Object getMod() {
         return this;
@@ -365,48 +318,6 @@ public class SpongeMod extends MetaModContainer {
     }
 
     @Subscribe
-    public void construction(final FMLConstructionEvent event) {
-        this.checkFingerprint();
-    }
-
-    // CSI: Sponge
-    private void checkFingerprint() {
-        final Certificate[] certificates = this.getClass().getProtectionDomain().getCodeSource().getCertificates();
-        final List<String> fingerprints = CertificateHelper.getFingerprints(certificates);
-        if (((Boolean) Launch.blackboard.getOrDefault("fml.deobfuscatedEnvironment", false))) {
-            SpongeImpl.getLogger().debug("Skipping certificate fingerprint check - we're in a deobfuscated environment");
-            return;
-        }
-        if (!EXPECTED_CERTIFICATE_FINGERPRINT.isEmpty()) {
-            if (!fingerprints.contains(EXPECTED_CERTIFICATE_FINGERPRINT)) {
-                final PrettyPrinter pp = new PrettyPrinter(60).wrapTo(60);
-                pp.add("Uh oh! Something's fishy here.").centre().hr();
-                pp.addWrapped("It looks like we didn't find the certificate fingerprint we were expecting.");
-                pp.add();
-                pp.add("%s: %s", "Expected Fingerprint", EXPECTED_CERTIFICATE_FINGERPRINT);
-                if (fingerprints.size() > 1) {
-                    pp.add("Actual Fingerprints:");
-                    for (final String fingerprint : fingerprints) {
-                        pp.add(" - %s", fingerprint);
-                    }
-                } else {
-                    pp.add("%s: %s", "Actual Fingerprint", fingerprints.get(0));
-                }
-                pp.log(SpongeImpl.getMixinLogger(), Level.ERROR);
-            } else {
-                this.certificate = certificates[fingerprints.indexOf(EXPECTED_CERTIFICATE_FINGERPRINT)];
-            }
-        } else {
-            SpongeImpl.getLogger().warn("There's no certificate fingerprint available");
-        }
-    }
-
-    @Override
-    public Certificate getSigningCertificate() {
-        return this.certificate;
-    }
-
-    @Subscribe
     public void onPreInit(FMLPreInitializationEvent event) {
         try {
             SpongeImpl.getGame().getEventManager().registerListeners(SpongeImpl.getPlugin().getInstance().get(), SpongeInternalListeners.getInstance());
@@ -426,7 +337,6 @@ public class SpongeMod extends MetaModContainer {
 
             // Add the SyncScheduler as a listener for ServerTickEvents
             MinecraftForge.EVENT_BUS.register(this);
-
             MinecraftForge.EVENT_BUS.register(this.game.getChannelRegistrar());
 
             if (event.getSide().isServer()) {
@@ -605,8 +515,4 @@ public class SpongeMod extends MetaModContainer {
         return this.logger;
     }
 
-    @Override
-    public URL getUpdateUrl() {
-        return this.updateJsonUrl;
-    }
 }

@@ -18,6 +18,17 @@
 		"mcversion": "1.12.2",
 		"description": "A Minecraft plugin API.",
 		"credits": "SpongePowered",
-		"url": "https://www.spongepowered.org"
+		"url": "https://www.spongepowered.org",
+		"logoFile": "${mod_logo_path}"
+	},
+	{
+		"modid": "sponge",
+		"name": "Sponge",
+		"version": "7.0.0",
+		"mcversion": "1.12.2",
+		"description": "Common utilities for Sponge.",
+		"credits": "SpongePowered",
+		"url": "https://www.spongepowered.org",
+		"logoFile": "${mod_logo_path}"
 	}
 ]
