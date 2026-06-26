@@ -26,7 +26,6 @@ package org.spongepowered.mod.mixin.core.fml.common.registry;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
-import com.google.common.collect.Maps;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
@@ -38,9 +37,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.common.SpongeImplHooks;
 import org.spongepowered.common.bridge.world.WorldServerBridge;
 import org.spongepowered.common.relocate.co.aikar.timings.SpongeTimingsFactory;
-import org.spongepowered.mod.util.StaticMixinForgeHelper;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -63,7 +62,7 @@ public class GameRegistryMixin_Forge {
         if (Timings.isTimingsEnabled()) {
             timing = forgeImpl$worldGeneratorTimings.get(worldGenerator.getClass());
             if (timing == null) {
-                final String modId = StaticMixinForgeHelper.getModIdFromClass(worldGenerator.getClass());
+                final String modId = SpongeImplHooks.getModIdFromClass(worldGenerator.getClass());
                 timing = SpongeTimingsFactory.ofSafe("worldGenerator (" + modId + ":" + worldGenerator.getClass().getName() + ")");
                 forgeImpl$worldGeneratorTimings.put(worldGenerator.getClass(), timing);
             }

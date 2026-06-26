@@ -26,14 +26,12 @@ package org.spongepowered.common;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Streams;
 import net.minecraft.block.Block;
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
@@ -42,7 +40,8 @@ import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
+import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
@@ -60,30 +59,50 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Explosion;
-import net.minecraft.world.GameType;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.storage.MapStorage;
-import net.minecraftforge.registries.GameData;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.ForgeModContainer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.CapabilityDispatcher;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.world.GetCollisionBoxesEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.FMLLog;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.ModContainer;
+import net.minecraftforge.fml.common.discovery.ASMDataTable;
+import net.minecraftforge.fml.common.discovery.ModCandidate;
+import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.common.registry.VillagerRegistry;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.wrapper.InvWrapper;
+import net.minecraftforge.server.timings.TimeTracker;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.TileEntityType;
 import org.spongepowered.api.command.args.ChildCommandElementExecutor;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.type.Profession;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.block.InteractBlockEvent;
-import org.spongepowered.api.event.cause.EventContextKeys;
-import org.spongepowered.api.event.cause.entity.spawn.SpawnTypes;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.crafting.CraftingGridInventory;
@@ -91,26 +110,43 @@ import org.spongepowered.api.item.recipe.crafting.CraftingRecipe;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.storage.WorldProperties;
-import org.spongepowered.common.bridge.entity.player.EntityPlayerBridge;
+import org.spongepowered.common.bridge.world.DimensionTypeBridge;
 import org.spongepowered.common.bridge.world.ForgeITeleporterBridge;
 import org.spongepowered.common.command.SpongeCommandFactory;
+import org.spongepowered.common.data.persistence.NbtTranslator;
 import org.spongepowered.common.entity.SpongeProfession;
-import org.spongepowered.common.event.SpongeCommonEventFactory;
 import org.spongepowered.common.event.tracking.PhaseContext;
 import org.spongepowered.common.event.tracking.PhaseTracker;
 import org.spongepowered.common.event.tracking.context.ItemDropData;
+import org.spongepowered.common.event.tracking.phase.block.BlockPhase;
 import org.spongepowered.common.event.tracking.phase.plugin.BasicPluginContext;
 import org.spongepowered.common.event.tracking.phase.plugin.PluginPhase;
 import org.spongepowered.common.item.inventory.adapter.InventoryAdapter;
 import org.spongepowered.common.item.inventory.util.InventoryUtil;
 import org.spongepowered.common.item.inventory.util.ItemStackUtil;
-import org.spongepowered.common.mixin.core.block.BlockFireAccessor;
 import org.spongepowered.common.mixin.core.world.WorldAccessor;
 import org.spongepowered.common.mixin.plugin.tileentityactivation.TileEntityActivation;
 import org.spongepowered.common.registry.type.ItemTypeRegistryModule;
+import org.spongepowered.common.registry.type.block.TileEntityTypeRegistryModule;
 import org.spongepowered.common.registry.type.entity.ProfessionRegistryModule;
+import org.spongepowered.common.registry.type.world.PortalAgentRegistryModule;
+import org.spongepowered.common.util.Constants;
 import org.spongepowered.common.util.SpawnerSpawnType;
+import org.spongepowered.common.util.TristateUtil;
 import org.spongepowered.common.world.WorldManager;
+import org.spongepowered.mod.SpongeMod;
+import org.spongepowered.mod.bridge.block.BlockBridge_Forge;
+import org.spongepowered.mod.bridge.event.EventBusBridge_Forge;
+import org.spongepowered.mod.bridge.item.ItemStackBridge_Forge;
+import org.spongepowered.mod.bridge.registry.VillagerProfessionBridge_Forge;
+import org.spongepowered.mod.command.SpongeForgeCommandFactory;
+import org.spongepowered.mod.event.SpongeModEventManager;
+import org.spongepowered.mod.event.SpongeToForgeEventData;
+import org.spongepowered.mod.item.inventory.adapter.IItemHandlerAdapter;
+import org.spongepowered.mod.mixin.core.fml.common.registry.VillagerRegistryAccessor;
+import org.spongepowered.mod.plugin.SpongeModPluginContainer;
+import org.spongepowered.mod.util.WrappedArrayList;
+import zone.rong.mixinbooter.util.Environment;
 
 import java.util.*;
 import java.util.concurrent.FutureTask;
@@ -126,15 +162,15 @@ import javax.annotation.Nullable;
 public final class SpongeImplHooks {
 
     public static boolean isVanilla() {
-        return true;
-    }
-
-    public static boolean isClientAvailable() {
         return false;
     }
 
+    public static boolean isClientAvailable() {
+        return SpongeMod.isClient();
+    }
+
     public static boolean isDeobfuscatedEnvironment() {
-        return true;
+        return Environment.inDev();
     }
 
     public static String getModIdFromClass(final Class<?> clazz) {
@@ -145,52 +181,52 @@ public final class SpongeImplHooks {
         if (className.startsWith("org.spongepowered.")) {
             return "sponge";
         }
-        return "unknown";
+        ASMDataTable data = SpongeMod.instance.getData();
+        if (data == null) {
+            return "unknown";
+        }
+        return data.getCandidatesFor(clazz.getPackage().getName())
+                .stream()
+                .map(ModCandidate::getContainedMods)
+                .flatMap(Collection::stream)
+                .findFirst()
+                .map(ModContainer::getModId)
+                .orElse("unknown");
     }
 
     // Entity
 
     public static boolean isCreatureOfType(final Entity entity, final EnumCreatureType type) {
-        return type.getCreatureClass().isAssignableFrom(entity.getClass());
+        return entity.isCreatureType(type, false);
     }
 
     public static boolean isFakePlayer(final Entity entity) {
-        return false;
+        return entity instanceof FakePlayer;
     }
 
     public static void fireServerConnectionEvent(final NetworkManager netManager) {
-        // Implemented in SF
+        FMLCommonHandler.instance().fireServerConnectionEvent(netManager);
     }
 
     public static void firePlayerJoinSpawnEvent(final EntityPlayerMP playerMP) {
-        // Implemented in SF
+        ((EventBusBridge_Forge) MinecraftForge.EVENT_BUS).forgeBridge$post(new EntityJoinWorldEvent(playerMP, playerMP.getEntityWorld()), true);
     }
 
     public static void handlePostChangeDimensionEvent(final EntityPlayerMP playerIn, final WorldServer fromWorld, final WorldServer toWorld) {
-        // Overwritten in SpongeForge
+        FMLCommonHandler.instance().firePlayerChangedDimensionEvent(playerIn, fromWorld.provider.getDimension(), toWorld.provider.getDimension());
     }
 
     public static boolean checkAttackEntity(final EntityPlayer entityPlayer, final Entity targetEntity) {
-        return true;
+        return ForgeHooks.onPlayerAttackTarget(entityPlayer, targetEntity);
     }
 
     public static double getBlockReachDistance(final EntityPlayerMP player) {
-        return 5.0d;
+        return player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).getAttributeValue();
     }
 
-    /**
-     * @author Polyacov_Yury
-     * @reason Forge reachDistance attribute compatibility
-     * @param player the player whose reach is being checked
-     * @param entity the entity that is being reached
-     * @return square of maximum player reach distance
-     */
     public static double getEntityReachDistanceSq(final EntityPlayerMP player, Entity entity) {
-        double d0 = 36.0d; // 6 blocks
-        if (!player.canEntityBeSeen(entity)) {  // TODO: this check introduces MC-107103
-            d0 = 9.0D; // 3 blocks
-        }
-        return d0;
+        double reach = getBlockReachDistance(player);
+        return reach * reach;
     }
 
     // Entity registry
@@ -212,82 +248,77 @@ public final class SpongeImplHooks {
     // Block
 
     public static boolean isBlockFlammable(final Block block, final IBlockAccess world, final BlockPos pos, final EnumFacing face) {
-        return ((BlockFireAccessor) Blocks.FIRE).accessor$getBlockFlamability(block) > 0;
+        return block.isFlammable(world, pos, face);
     }
 
     public static int getBlockLightOpacity(final IBlockState state, final IBlockAccess world, final BlockPos pos) {
-        return state.getLightOpacity();
+        return state.getLightOpacity(world, pos);
     }
 
 	public static int getChunkPosLight(final IBlockState blockState, final World world, final BlockPos pos) {
-		return blockState.getLightValue();
+        if (((BlockBridge_Forge) blockState.getBlock()).forgeBridge$requiresLocationCheckForLightValue()) {
+            return blockState.getLightValue(world, pos);
+        }
+        return blockState.getLightValue();
 	}
     // Tile entity
 
     @Nullable
     public static TileEntity createTileEntity(final Block block, final net.minecraft.world.World world, final IBlockState state) {
-        if (block instanceof ITileEntityProvider) {
-            return ((ITileEntityProvider) block).createNewTileEntity(world, block.getMetaFromState(state));
-        }
-        return null;
+        return block.createTileEntity(world, state);
     }
 
     public static boolean hasBlockTileEntity(final Block block, final IBlockState state) {
-        return block instanceof ITileEntityProvider;
+        return block.hasTileEntity(state);
     }
 
     public static boolean shouldRefresh(final TileEntity tile, final net.minecraft.world.World world, final BlockPos pos, final IBlockState oldState, final IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
+        return tile.shouldRefresh(world, pos, oldState, newState);
     }
 
     public static void onTileChunkUnload(final TileEntity te) {
-        // Overwritten in SpongeForge
+        if (te == null) {
+            return;
+        }
+        if (!te.getWorld().isRemote) {
+            try (final PhaseContext<?> o = BlockPhase.State.TILE_CHUNK_UNLOAD.createPhaseContext().source(te)) {
+                o.buildAndSwitch();
+                te.onChunkUnload();
+            }
+        }
     }
 
     // World
 
     public static Iterator<Chunk> getChunkIterator(final WorldServer world) {
-        return world.getPlayerChunkMap().getChunkIterator();
+        return world.getPersistentChunkIterable(world.getPlayerChunkMap().getChunkIterator());
     }
 
     public static void registerPortalAgentType(@Nullable final ForgeITeleporterBridge teleporter) {
-        // Overwritten in SpongeForge
+        if (teleporter == null) {
+            return;
+        }
+
+        // handle mod registration
+        PortalAgentRegistryModule.getInstance().validatePortalAgent(teleporter);
     }
 
     // World provider
 
     public static boolean canDoLightning(final WorldProvider provider, final net.minecraft.world.chunk.Chunk chunk) {
-        return true;
+        return provider.canDoLightning(chunk);
     }
 
     public static boolean canDoRainSnowIce(final WorldProvider provider, final net.minecraft.world.chunk.Chunk chunk) {
-        return true;
+        return provider.canDoRainSnowIce(chunk);
     }
 
     public static int getRespawnDimension(final WorldProvider targetDimension, final EntityPlayerMP player) {
-        return 0;
+        return targetDimension.getRespawnDimension(player);
     }
 
     public static BlockPos getRandomizedSpawnPoint(final WorldServer world) {
-        BlockPos ret = world.getSpawnPoint();
-
-        final boolean isAdventure = world.getWorldInfo().getGameType() == GameType.ADVENTURE;
-        int spawnFuzz = Math.max(0, world.getMinecraftServer().getSpawnRadius(world));
-        final int border = MathHelper.floor(world.getWorldBorder().getClosestDistance(ret.getX(), ret.getZ()));
-        if (border < spawnFuzz) {
-            spawnFuzz = border;
-        }
-
-        if (!world.provider.isNether() && !isAdventure && spawnFuzz != 0)
-        {
-            if (spawnFuzz < 2) {
-                spawnFuzz = 2;
-            }
-            final int spawnFuzzHalf = spawnFuzz / 2;
-            ret = world.getTopSolidOrLiquidBlock(ret.add(world.rand.nextInt(spawnFuzzHalf) - spawnFuzz, 0, world.rand.nextInt(spawnFuzzHalf) - spawnFuzz));
-        }
-
-        return ret;
+        return world.provider.getRandomizedSpawnPoint();
     }
 
     // Item stack merging
@@ -300,21 +331,30 @@ public final class SpongeImplHooks {
     }
 
     public static MapStorage getWorldMapStorage(final World world) {
-        return world.getMapStorage();
+        return world.getPerWorldStorage();
     }
 
     public static int countEntities(final WorldServer worldServer, final net.minecraft.entity.EnumCreatureType type, final boolean forSpawnCount) {
-        return worldServer.countEntities(type.getCreatureClass());
+        return worldServer.countEntities(type, forSpawnCount);
     }
 
     public static int getMaxSpawnPackSize(final EntityLiving entityLiving) {
-        return entityLiving.getMaxSpawnedInChunk();
+        return ForgeEventFactory.getMaxSpawnPackSize(entityLiving);
     }
 
     public static SpawnerSpawnType canEntitySpawnHere(final EntityLiving entityLiving, final boolean entityNotColliding) {
-        if (entityLiving.getCanSpawnHere() && entityNotColliding) {
-            return SpawnerSpawnType.NORMAL;
+        final World world = entityLiving.world;
+        final float x = (float) entityLiving.posX;
+        final float y = (float) entityLiving.posY;
+        final float z = (float) entityLiving.posZ;
+        final Event.Result canSpawn = ForgeEventFactory.canEntitySpawn(entityLiving, world, x, y, z, false);
+        if (canSpawn == Event.Result.ALLOW || (canSpawn == Event.Result.DEFAULT && (entityLiving.getCanSpawnHere()) && entityNotColliding)) {
+            if (!ForgeEventFactory.doSpecialSpawn(entityLiving, world, x, y, z)) {
+                return SpawnerSpawnType.NORMAL;
+            }
+            return SpawnerSpawnType.SPECIAL;
         }
+
         return SpawnerSpawnType.NONE;
     }
 
@@ -334,9 +374,27 @@ public final class SpongeImplHooks {
         }
     }
 
+    public static void onEntityError(final Entity entity, final CrashReport crashReport) {
+        if (ForgeModContainer.removeErroringEntities) {
+            FMLLog.log.log(Level.ERROR, crashReport.getCompleteReport());
+            entity.getEntityWorld().removeEntity(entity);
+        } else {
+            throw new ReportedException(crashReport);
+        }
+    }
+
+    public static void onTileEntityError(final TileEntity tileEntity, final CrashReport crashReport) {
+        if (ForgeModContainer.removeErroringTileEntities) {
+            FMLLog.log.log(Level.ERROR, crashReport.getCompleteReport());
+            tileEntity.invalidate();
+            tileEntity.getWorld().removeTileEntity(tileEntity.getPos());
+        } else {
+            throw new ReportedException(crashReport);
+        }
+    }
+
     public static void blockExploded(final Block block, final World world, final BlockPos blockpos, final Explosion explosion) {
-        world.setBlockToAir(blockpos);
-        block.onExplosionDestroy(world, blockpos, explosion);
+        block.onBlockExploded(world, blockpos, explosion);
     }
 
     /**
@@ -349,83 +407,64 @@ public final class SpongeImplHooks {
      */
     @SuppressWarnings("unused") // overridden to be used in MixinSpongeImplHooks.
     public static boolean isRestoringBlocks(final World world) {
-        return PhaseTracker.getInstance().getCurrentState().isRestoring();
-
+        return world.restoringBlockSnapshots || PhaseTracker.getInstance().getCurrentState().isRestoring();
     }
 
     public static void onTileEntityChunkUnload(final net.minecraft.tileentity.TileEntity tileEntity) {
-        // forge only method
+        tileEntity.onChunkUnload();
     }
 
-    public static boolean canConnectRedstone(
-        final Block block, final IBlockState state, final IBlockAccess world, final BlockPos pos, @Nullable final EnumFacing side) {
-        return state.canProvidePower() && side != null;
+    public static boolean canConnectRedstone(final Block block, final IBlockState state, final IBlockAccess world, final BlockPos pos, @Nullable final EnumFacing side) {
+        return block.canConnectRedstone(state, world, pos, side);
     }
     // Crafting
 
     public static Optional<ItemStack> getContainerItem(final ItemStack itemStack) {
-        checkNotNull(itemStack, "The itemStack must not be null");
-
         final net.minecraft.item.ItemStack nmsStack = ItemStackUtil.toNative(itemStack);
+        final net.minecraft.item.ItemStack nmsContainerStack = ForgeHooks.getContainerItem(nmsStack);
 
-        if (nmsStack.isEmpty()) {
-            return Optional.empty();
-        }
-
-        final Item nmsItem = nmsStack.getItem();
-
-        if (nmsItem.hasContainerItem()) {
-            final Item nmsContainerItem = nmsItem.getContainerItem();
-            final net.minecraft.item.ItemStack nmsContainerStack = new net.minecraft.item.ItemStack(nmsContainerItem);
-            final ItemStack containerStack = ItemStackUtil.fromNative(nmsContainerStack);
-
-            return Optional.of(containerStack);
-        } else {
-            return Optional.empty();
-        }
+        return nmsContainerStack.isEmpty() ? Optional.empty() : Optional.of(ItemStackUtil.fromNative(nmsContainerStack));
     }
 
     public static Optional<CraftingRecipe> findMatchingRecipe(final CraftingGridInventory inventory, final org.spongepowered.api.world.World world) {
-        final IRecipe recipe = CraftingManager.findMatchingRecipe(InventoryUtil.toNativeInventory(inventory), ((net.minecraft.world.World) world));
+        final IRecipe recipe = CraftingManager.findMatchingRecipe(InventoryUtil.toNativeInventory(inventory), ((World) world));
         return Optional.ofNullable(((CraftingRecipe) recipe));
     }
 
     public static Collection<CraftingRecipe> getCraftingRecipes() {
-        return Streams.stream(CraftingManager.REGISTRY.iterator()).map(CraftingRecipe.class::cast).collect(ImmutableList.toImmutableList());
+        return ForgeRegistries.RECIPES.getValues().stream()
+                .map(CraftingRecipe.class::cast)
+                .collect(ImmutableList.toImmutableList());
     }
 
     public static Optional<CraftingRecipe> getRecipeById(final String id) {
-        final IRecipe recipe = CraftingManager.REGISTRY.getObject(new ResourceLocation(id));
+        final IRecipe recipe = ForgeRegistries.RECIPES.getValue(new ResourceLocation(id));
         if (recipe == null) {
             return Optional.empty();
         }
         return Optional.of(((CraftingRecipe) recipe));
     }
 
-    // TODO: check timing of this method
     public static void register(final ResourceLocation name, final IRecipe recipe) {
-        // CraftingManager.register(name, recipe);
-        if (!Objects.equals(recipe.getRegistryName(), name)) {
-            throw new RuntimeException("IRecipe does not match the name given when registering.");
-        }
-        GameData.register_impl(recipe);
+        recipe.setRegistryName(name);
+        ForgeRegistries.RECIPES.register(recipe);
     }
 
     @Nullable
     public static PluginContainer getActiveModContainer() {
-        return null;
+        return (PluginContainer) Loader.instance().activeModContainer();
     }
 
     public static Text getAdditionalCommandDescriptions() {
-        return Text.EMPTY;
+        return Text.of(SpongeCommandFactory.INDENT, SpongeCommandFactory.title("mods"), SpongeCommandFactory.LONG_INDENT, "List currently installed mods");
     }
 
     public static void registerAdditionalCommands(final ChildCommandElementExecutor flagChildren, final ChildCommandElementExecutor nonFlagChildren) {
-        // Overwritten in SpongeForge
+        nonFlagChildren.register(SpongeForgeCommandFactory.createSpongeModsCommand(), "mods");
     }
 
     public static Predicate<? super PluginContainer> getPluginFilterPredicate() {
-        return plugin -> !SpongeCommandFactory.CONTAINER_LIST_STATICS.contains(plugin.getId());
+        return plugin -> !SpongeCommandFactory.CONTAINER_LIST_STATICS.contains(plugin.getId()) && plugin instanceof SpongeModPluginContainer;
     }
 
     // Borrowed from Forge, with adjustments by us
@@ -444,34 +483,86 @@ public final class SpongeImplHooks {
     }
 
     public static void setShouldLoadSpawn(final net.minecraft.world.DimensionType dimensionType, final boolean keepSpawnLoaded) {
-        // This is only used in SpongeForge
+        ((DimensionTypeBridge) (Object) dimensionType).setShouldLoadSpawn(keepSpawnLoaded);
     }
 
     public static BlockPos getBedLocation(final EntityPlayer playerIn, final int dimension) {
-        return ((EntityPlayerBridge) playerIn).bridge$getBedLocation(dimension);
+        return playerIn.getBedLocation(dimension);
     }
 
     public static boolean isSpawnForced(final EntityPlayer playerIn, final int dimension) {
-        return ((EntityPlayerBridge) playerIn).bridge$isSpawnForced(dimension);
+        return playerIn.isSpawnForced(dimension);
     }
 
     public static Inventory toInventory(final Object inventory, @Nullable final Object forgeItemHandler) {
-        SpongeImpl.getLogger().error("Unknown inventory " + inventory.getClass().getName() + " report this to Sponge");
+        if (forgeItemHandler instanceof Inventory) {
+            return (Inventory) forgeItemHandler;
+        }
+
+        // Prefer forge IItemHandler for interaction with modded inventory
+        if (inventory instanceof ICapabilityProvider) {
+            IItemHandler itemHandler = ((ICapabilityProvider) inventory).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+            if (itemHandler != null) {
+                return (Inventory) itemHandler;
+            }
+        }
+
+        if (inventory instanceof Inventory) {
+            return ((Inventory) inventory);
+        }
+
+        final String fallbackName = forgeItemHandler == null ? "no forgeItemHandler" : forgeItemHandler.getClass().getName();
+        SpongeImpl.getLogger().error("Unknown inventory " + inventory.getClass().getName() + " and " + fallbackName + " report this to Sponge");
         return null;
     }
 
     public static InventoryAdapter findInventoryAdapter(final Object inventory) {
+        // If the inventory provides a IItemHandler take that one first
+        if (inventory instanceof ICapabilityProvider) {
+            IItemHandler itemHandler = ((ICapabilityProvider) inventory).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+            if (itemHandler instanceof InventoryAdapter) {
+                return (InventoryAdapter) itemHandler;
+            }
+            if (itemHandler != null) {
+                return new IItemHandlerAdapter(itemHandler); // TODO caching?
+            }
+        }
+
+        // If the inventory directly implements IItemHandler we have to wrap it to get an adapter
+        if (inventory instanceof IItemHandler) {
+            return new IItemHandlerAdapter((IItemHandler) inventory); // TODO caching?
+        }
+
+        // If the inventory directly implements IInventory we wrap in an InvWrapper
+        if (inventory instanceof IInventory) {
+            return (InventoryAdapter) new InvWrapper((IInventory) inventory); // TODO caching?
+        }
+
+        // This should never happen
         SpongeImpl.getLogger().error("Unknown inventory " + inventory.getClass().getName() + " report this to Sponge");
         throw new IllegalArgumentException("Unknown inventory " + inventory.getClass().getName() + " report this to Sponge");
     }
 
     public static void onTileEntityInvalidate(final TileEntity te) {
-        te.invalidate();
+        try (final PhaseContext<?> o = BlockPhase.State.TILE_ENTITY_INVALIDATING.createPhaseContext().source(te)) {
+            o.buildAndSwitch();
+            te.invalidate();
+        }
     }
 
-    public static void capturePerEntityItemDrop(final PhaseContext<?> phaseContext, final Entity owner,
-        final EntityItem entityitem) {
-        phaseContext.getPerEntityItemEntityDropSupplier().get().put(owner.getUniqueID(), entityitem);
+    public static void capturePerEntityItemDrop(final PhaseContext<?> phaseContext, final Entity owner, final EntityItem entityitem) {
+            final ArrayListMultimap<UUID, EntityItem> map = phaseContext.getPerEntityItemEntityDropSupplier().get();
+            final ArrayList<EntityItem> entityItems = new WrappedArrayList(owner, map.get(owner.getUniqueID()));
+            // Re-assigns the list, to ensure that the list is being used.
+            final ArrayList<EntityItem> capturedDrops = owner.capturedDrops;
+            if (capturedDrops != entityItems) {
+                owner.capturedDrops = entityItems;
+                // If the list was not empty, go ahead and populate sponge's since we had to re-assign the list.
+                if (!capturedDrops.isEmpty()) {
+                    entityItems.addAll(capturedDrops);
+                }
+            }
+            entityItems.add(entityitem);
     }
 
     /**
@@ -484,11 +575,11 @@ public final class SpongeImplHooks {
      * @return
      */
     public static int getLootingEnchantmentModifier(final EntityLivingBase target, final EntityLivingBase entity, final DamageSource cause) {
-        return EnchantmentHelper.getLootingModifier(entity);
+        return ForgeHooks.getLootingLevel(target, entity, cause);
     }
 
     public static double getWorldMaxEntityRadius(final WorldServer worldServer) {
-        return 2.0D;
+        return WorldServer.MAX_ENTITY_RADIUS;
     }
 
     /**
@@ -499,36 +590,41 @@ public final class SpongeImplHooks {
      * @return
      */
     public static Profession validateProfession(final int professionId) {
-        final List<Profession> professions = (List<Profession>) ProfessionRegistryModule.getInstance().getAll();
-        for (final Profession profession : professions) {
-            if (profession instanceof SpongeProfession) {
-                if (professionId == ((SpongeProfession) profession).type) {
-                    return profession;
-                }
-            }
+        final VillagerRegistry.VillagerProfession
+                profession =
+                ((VillagerRegistryAccessor) VillagerRegistry.instance()).accessor$getRegistry().getObjectById(professionId);
+        if (profession == null) {
+            throw new RuntimeException("Attempted to set villager profession to unregistered profession: " + professionId);
         }
-        throw new IllegalStateException("Invalid Villager profession id is present! Found: " + professionId
-                                        + " when the expected contain: " + professions);
-
+        final VillagerProfessionBridge_Forge mixinProfession = (VillagerProfessionBridge_Forge) profession;
+        return mixinProfession.forgeBridge$getSpongeProfession().orElseGet(() -> {
+            final SpongeProfession newProfession = new SpongeProfession(professionId, mixinProfession.forgeBridge$getId(), mixinProfession.forgeBridge$getProfessionName());
+            mixinProfession.forgeBridge$setSpongeProfession(newProfession);
+            ProfessionRegistryModule.getInstance().registerAdditionalCatalog(newProfession);
+            return newProfession;
+        });
     }
 
     public static void onUseItemTick(final EntityLivingBase entity, final net.minecraft.item.ItemStack stack, final int activeItemStackUseCount) {
+        if (!stack.isEmpty() && activeItemStackUseCount > 0) {
+            stack.getItem().onUsingTick(stack, entity, activeItemStackUseCount);
+        }
     }
 
     public static void onTETickStart(final TileEntity te) {
-
+        TimeTracker.TILE_ENTITY_UPDATE.trackStart(te);
     }
 
     public static void onTETickEnd(final TileEntity te) {
-
+        TimeTracker.TILE_ENTITY_UPDATE.trackEnd(te);
     }
 
     public static void onEntityTickStart(final Entity entity) {
-
+        TimeTracker.ENTITY_UPDATE.trackStart(entity);
     }
 
     public static void onEntityTickEnd(final Entity entity) {
-
+        TimeTracker.ENTITY_UPDATE.trackEnd(entity);
     }
 
     public static boolean isMainThread() {
@@ -544,11 +640,32 @@ public final class SpongeImplHooks {
     }
 
     public static String getImplementationId() {
-        throw new UnsupportedOperationException("SpongeCommon does not have it's own ecosystem, this needs to be mixed into for implementations depending on SpongeCommon");
+        return "spongeforge";
     }
 
+    /**
+     * @author gabizou - July 31st, 2018
+     * @reason Due to ForgeMultiPart having some modifications to tile entity registration,
+     * we sometimes cannot guarantee that we'll have a valid type. If this is the case,
+     * we sometimes need to "register" one for our own uses for plugins to validate.
+     *
+     * Refer to https://github.com/TheCBProject/ForgeMultipart/issues/33
+     */
     public static TileEntityType getTileEntityType(final Class<? extends TileEntity> aClass) {
-        return SpongeImpl.getRegistry().getTranslated(aClass, TileEntityType.class);
+        final ResourceLocation location = TileEntity.getKey((Class<? extends TileEntity>) aClass);
+        if (location == null) {
+            // Means it's not properly registered either....
+            return null;
+        }
+
+        final TileEntityType translated = SpongeImpl.getRegistry().getTranslated(aClass, TileEntityType.class);
+        if (translated == null) {
+            // this is a rare case where we don't even have access to the correct tile entity type
+            // through normal registrations. So, instead, what we do is we have to re-create the type
+            // for this tile entity class and then say "ok, here's a newly registered one"
+            return TileEntityTypeRegistryModule.getInstance().doTileEntityRegistration(aClass, location.getPath());
+        }
+        return translated;
     }
 
     /**
@@ -560,8 +677,7 @@ public final class SpongeImplHooks {
      */
     @Nullable
     public static Object postForgeEventDataCompatForSponge(final InteractBlockEvent.Secondary spongeEvent) {
-        SpongeImpl.postEvent(spongeEvent);
-        return null;
+        return ((SpongeModEventManager) Sponge.getEventManager()).extendedPost(spongeEvent, false, false);
     }
 
     // Some mods such as OpenComputers open a GUI on client-side
@@ -597,6 +713,9 @@ public final class SpongeImplHooks {
      * @param player The player
      */
     public static void shouldCloseScreen(final World worldIn, final BlockPos pos, @Nullable final Object eventData, final EntityPlayerMP player) {
+        if (worldIn.getTileEntity(pos) != null && player.openContainer instanceof ContainerPlayer && (eventData == null || !((SpongeToForgeEventData) eventData).getForgeEvent().isCanceled())) {
+            player.closeScreen();
+        }
     }
 
     /**
@@ -607,7 +726,13 @@ public final class SpongeImplHooks {
      * @return The result as a result of the event data
      */
     public static EnumActionResult getInteractionCancellationResult(@Nullable final Object forgeEventObject) {
-        return EnumActionResult.FAIL;
+        // If a Forge event wasn't fired (due to no Forge mods listening for event), we want
+        // to act as though an un-cancelled, unmodified Forge event was still fired.
+        // Forge's PlayerInteractEvent#getCancellationResult() defaults to EnumActionResult.PASS,
+        // so we return that.
+        final SpongeToForgeEventData eventData = (SpongeToForgeEventData) forgeEventObject;
+        return eventData == null ? EnumActionResult.PASS : ((PlayerInteractEvent) eventData.getForgeEvent()).getCancellationResult(); // SpongeForge - return event result
+
     }
 
     /**
@@ -617,13 +742,15 @@ public final class SpongeImplHooks {
      * @param worldIn The world in
      * @param pos The position
      * @param player The player
-     * @param heldItemMainhand The main hand item
-     * @param heldItemOffhand The offhand item
+     * @param main The main hand item
+     * @param off The offhand item
      * @return Whether to bypass sneaking state, forge has an extra hook on the item class
      */
-    public static boolean doesItemSneakBypass(final World worldIn, final BlockPos pos, final EntityPlayer player, final net.minecraft.item.ItemStack heldItemMainhand,
-        final net.minecraft.item.ItemStack heldItemOffhand) {
-        return heldItemMainhand.isEmpty() && heldItemOffhand.isEmpty();
+    public static boolean doesItemSneakBypass(final World worldIn, final BlockPos pos, final EntityPlayer player, final net.minecraft.item.ItemStack main, final net.minecraft.item.ItemStack off) {
+        boolean bypass;
+        bypass = main.isEmpty() || main.getItem().doesSneakBypassUse(main, worldIn, pos, player);
+        bypass = bypass && (off.isEmpty() || off.getItem().doesSneakBypassUse(off, worldIn, pos, player));
+        return bypass;
     }
 
     /**
@@ -640,9 +767,20 @@ public final class SpongeImplHooks {
      */
     @Nullable
     public static EnumActionResult getEnumResultForProcessRightClickBlock(final EntityPlayerMP player,
-        final InteractBlockEvent.Secondary event, final EnumActionResult result, final World worldIn, final BlockPos pos,
+        final InteractBlockEvent.Secondary event, EnumActionResult result, final World worldIn, final BlockPos pos,
         final EnumHand hand) {
-        return EnumActionResult.FAIL;
+        result = TristateUtil.toActionResult(event.getUseItemResult());
+
+        // SpongeForge - start
+        // Same issue as above with OpenComputers
+        // This handles the event not cancelled and block not activated
+        // We only run this if the event was changed. If the event wasn't changed,
+        // we need to keep the GUI open on the client for Forge compatibility.
+        if (result != EnumActionResult.SUCCESS && worldIn.getTileEntity(pos) != null && hand == EnumHand.MAIN_HAND) {
+            player.closeScreen();
+        }
+        // SpongeForge - end
+        return null;
     }
 
     /**
@@ -664,7 +802,7 @@ public final class SpongeImplHooks {
         final EntityPlayer player, final net.minecraft.item.ItemStack stack, final World worldIn, final BlockPos pos,
         final EnumHand hand, final EnumFacing facing, final float hitX,
         final float hitY, final float hitZ) {
-        return EnumActionResult.PASS;
+        return stack.onItemUseFirst(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);
     }
 
     /**
@@ -674,7 +812,8 @@ public final class SpongeImplHooks {
      * @return False by default, means all server sided events or common events are allowed otherwise.
      */
     public static boolean isEventClientEvent(final Object object) {
-        return false;
+        final SideOnly annotation = object.getClass().getAnnotation(SideOnly.class);
+        return annotation != null && annotation.value() == Side.CLIENT;
     }
 
 
@@ -692,6 +831,18 @@ public final class SpongeImplHooks {
     @SuppressWarnings("ConstantConditions")
     @Nullable
     public static Entity getCustomEntityIfItem(final Entity entity) {
+        final net.minecraft.item.ItemStack stack =
+                entity instanceof EntityItem ? ((EntityItem) entity).getItem() : net.minecraft.item.ItemStack.EMPTY;
+        final Item item = stack.getItem();
+
+        if (item.hasCustomEntity(stack)) {
+            final Entity newEntity = item.createEntity(entity.getEntityWorld(), entity, stack); // Sponge - use world from entity
+            if (newEntity != null) {
+                entity.setDead();
+
+                return newEntity;
+            }
+        }
         return null;
     }
 
@@ -714,23 +865,40 @@ public final class SpongeImplHooks {
      */
     @Nullable
     public static ResourceLocation getItemResourceLocation(final Item mixinItem_api) {
-        return Item.REGISTRY.getNameForObject(mixinItem_api);
+        return mixinItem_api.getRegistryName();
     }
 
-    public static void registerItemForSpongeRegistry(final int id, final ResourceLocation textualID, final Item itemIn) {
-        ItemTypeRegistryModule.getInstance().registerAdditionalCatalog((ItemType) itemIn);
+    public static void registerItemForSpongeRegistry(final int id, final ResourceLocation name, final Item item) {
+        final Item registered;
+        final ResourceLocation nameForObject = Item.REGISTRY.getNameForObject(item);
+        if (nameForObject == null) {
+            registered = checkNotNull(Item.REGISTRY.getObject(name), "Someone replaced a vanilla item with a null item!!!");
+        } else {
+            registered = item;
+        }
+        ItemTypeRegistryModule.getInstance().registerAdditionalCatalog((ItemType) registered);
     }
 
     public static void writeItemStackCapabilitiesToDataView(final DataContainer container, final net.minecraft.item.ItemStack stack) {
-
+        final CapabilityDispatcher capabilities = ((ItemStackBridge_Forge) (Object) stack).forgeBridge$getCapabilities();
+        if (capabilities != null) {
+            final NBTTagCompound caps = capabilities.serializeNBT();
+            if (caps != null && !caps.isEmpty()) {
+                final DataContainer capsView = NbtTranslator.getInstance().translate(caps);
+                container.set(Constants.Sponge.UNSAFE_NBT.then(Constants.Forge.FORGE_CAPS), capsView);
+            }
+        }
     }
 
     public static boolean canEnchantmentBeAppliedToItem(final Enchantment enchantment, final net.minecraft.item.ItemStack stack) {
-        return enchantment.canApply(stack);
+        return (stack.getItem() == ItemTypes.BOOK) ? enchantment.isAllowedOnBooks() : enchantment.canApply((net.minecraft.item.ItemStack) (Object) stack);
     }
 
     public static void setCapabilitiesFromSpongeBuilder(final ItemStack stack, final NBTTagCompound compoundTag) {
-
+        final CapabilityDispatcher capabilities = ((ItemStackBridge_Forge) stack).forgeBridge$getCapabilities();
+        if (capabilities != null) {
+            capabilities.deserializeNBT(compoundTag);
+        }
     }
 
     public static TileEntity onChunkGetTileDuringRemoval(final WorldServer worldServer, final BlockPos pos) {
@@ -768,5 +936,6 @@ public final class SpongeImplHooks {
      */
     public static void onForgeCollision(final World world, @Nullable final Entity entityIn, final AxisAlignedBB aabb,
             final List<AxisAlignedBB> collided) {
+        MinecraftForge.EVENT_BUS.post(new GetCollisionBoxesEvent(world, entityIn, aabb, collided));
     }
 }

@@ -17,7 +17,6 @@
         "block.BlockRailBaseMixin_Forge",
         "command.EntitySelectorMixin_Forge",
         "command.ServerCommandManagerMixin_Forge",
-        "common.SpongeImplHooksMixin_Forge",
         "common.event.SpongeCommonEventFactoryMixin_Forge",
         "common.world.WorldManagerMixin_Forge",
         "entity.EntityLivingBaseMixin_Forge",
@@ -88,7 +87,6 @@
         "client.multiplayer.ChunkProviderClientMixin_Forge",
         "client.network.NetHandlerPlayClientMixin_Forge",
         "client.server.IntegratedServerMixin_Forge",
-        "common.SpongeImplHooksMixin_ForgeClient",
         "common.event.tracking.context.SpongeProxyBlockAccessMixin_Forge",
         "server.integrated.IntegratedServer$3Mixin_Forge"
     ],

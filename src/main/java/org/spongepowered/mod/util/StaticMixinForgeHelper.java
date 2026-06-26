@@ -47,6 +47,7 @@ import org.spongepowered.api.event.cause.entity.damage.DamageModifierTypes;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.common.SpongeImpl;
+import org.spongepowered.common.SpongeImplHooks;
 import org.spongepowered.common.entity.SpongeEntityType;
 import org.spongepowered.common.event.damage.DamageEventHandler;
 import org.spongepowered.common.item.inventory.util.ItemStackUtil;
@@ -320,17 +321,7 @@ public final class StaticMixinForgeHelper {
 
     @SuppressWarnings("rawtypes")
     public static String getModIdFromClass(final Class clazz) {
-        final String className = clazz.getName();
-        String modId = className.contains("net.minecraft.") ? "minecraft" : className.contains("org.spongepowered.") ? "sponge" : "unknown";
-        final String modPackage = className.replace("." + clazz.getSimpleName(), "");
-        for (final ModContainer mc : Loader.instance().getActiveModList()) {
-            if (mc.getOwnedPackages().contains(modPackage)) {
-                modId = mc.getModId();
-                break;
-            }
-        }
-
-        return modId;
+        return SpongeImplHooks.getModIdFromClass(clazz);
     }
 
     @SuppressWarnings("rawtypes")

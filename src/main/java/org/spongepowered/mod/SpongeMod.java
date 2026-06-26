@@ -43,6 +43,7 @@ import net.minecraftforge.fml.client.FMLFolderResourcePack;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.ModContainerFactory;
+import net.minecraftforge.fml.common.discovery.ASMDataTable;
 import net.minecraftforge.fml.common.event.FMLConstructionEvent;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
@@ -126,7 +127,6 @@ import org.spongepowered.mod.util.StaticMixinForgeHelper;
 import zone.rong.mixinbooter.util.Environment;
 
 import java.io.File;
-import java.net.URL;
 
 import javax.annotation.Nullable;
 
@@ -165,6 +165,7 @@ public class SpongeMod extends MetaModContainer {
     @Inject private Logger logger;
     private LoadController controller;
     private File modFile;
+    private ASMDataTable data;
 
     public SpongeMod() throws Exception {
         super(SpongeModMetadata.getSpongeForgeMetadata());
@@ -289,6 +290,10 @@ public class SpongeMod extends MetaModContainer {
         return this.controller;
     }
 
+    public ASMDataTable getData() {
+        return data;
+    }
+
     private <T> void registerService(Class<T> serviceClass, T serviceImpl) {
         SpongeImpl.getGame().getServiceManager().setProvider(SpongeImpl.getPlugin(), serviceClass, serviceImpl);
     }
@@ -315,6 +320,11 @@ public class SpongeMod extends MetaModContainer {
         if (!event.getClass().equals(FMLConstructionEvent.class)) {
             SpongeImpl.postEvent((Event) event, true);
         }
+    }
+
+    @Subscribe
+    public void onConstruction(FMLConstructionEvent event) {
+        this.data = event.getASMHarvestedData();
     }
 
     @Subscribe

@@ -91,6 +91,7 @@ import org.spongepowered.api.world.gen.populator.SeaFloor;
 import org.spongepowered.api.world.gen.populator.Shrub;
 import org.spongepowered.api.world.gen.populator.WaterLily;
 import org.spongepowered.common.SpongeImpl;
+import org.spongepowered.common.SpongeImplHooks;
 import org.spongepowered.common.bridge.TimingBridge;
 import org.spongepowered.common.bridge.world.WorldServerBridge;
 import org.spongepowered.common.bridge.world.WorldBridge;
@@ -110,7 +111,6 @@ import org.spongepowered.common.world.gen.populators.AnimalPopulator;
 import org.spongepowered.common.world.gen.populators.PlainsGrassPopulator;
 import org.spongepowered.common.world.gen.populators.SnowPopulator;
 import org.spongepowered.mod.util.CompatibilityException;
-import org.spongepowered.mod.util.StaticMixinForgeHelper;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -132,7 +132,7 @@ public final class SpongeChunkGeneratorForge extends SpongeChunkGenerator {
         super(world, generationPopulator, biomeGenerator);
 
         String chunkGeneratorName = "";
-        final String modId = StaticMixinForgeHelper.getModIdFromClass(generationPopulator.getClass());
+        final String modId = SpongeImplHooks.getModIdFromClass(generationPopulator.getClass());
         if ("unknown".equalsIgnoreCase(modId)) {
             if (generationPopulator instanceof SpongeGenerationPopulator) {
                 chunkGeneratorName = "chunkGenerator (" + ((SpongeGenerationPopulator) generationPopulator).getHandle(world).getClass().getSimpleName() + ")";

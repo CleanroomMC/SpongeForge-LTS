@@ -42,13 +42,12 @@ import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.common.SpongeImpl;
+import org.spongepowered.common.SpongeImplHooks;
 import org.spongepowered.common.bridge.world.WorldServerBridge;
 import org.spongepowered.common.bridge.world.WorldInfoBridge;
 import org.spongepowered.common.bridge.world.WorldSettingsBridge;
 import org.spongepowered.common.world.WorldManager;
-import org.spongepowered.mod.util.StaticMixinForgeHelper;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -57,8 +56,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
 
 /**
  * This mixin redirects all logic in Forge to our WorldManager.
@@ -244,7 +241,7 @@ public abstract class DimensionManagerMixin_Forge {
             if (properties != null) {
                 WorldManager.unregisterWorldProperties(properties, false);
             }
-            final String modId = StaticMixinForgeHelper.getModIdFromClass(provider.getClass());
+            final String modId = SpongeImplHooks.getModIdFromClass(provider.getClass());
             WorldArchetype archetype = Sponge.getRegistry().getType(WorldArchetype.class, modId + ":" + dimensionType.getName().toLowerCase()).orElse(null);
             if (archetype == null) {
                 final WorldArchetype.Builder builder = WorldArchetype.builder()
