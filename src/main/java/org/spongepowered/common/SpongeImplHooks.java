@@ -145,6 +145,7 @@ import org.spongepowered.mod.event.SpongeToForgeEventData;
 import org.spongepowered.mod.item.inventory.adapter.IItemHandlerAdapter;
 import org.spongepowered.mod.mixin.core.fml.common.registry.VillagerRegistryAccessor;
 import org.spongepowered.mod.plugin.SpongeModPluginContainer;
+import org.spongepowered.mod.plugin.SpongePluginContainer;
 import org.spongepowered.mod.util.WrappedArrayList;
 import zone.rong.mixinbooter.util.Environment;
 
@@ -452,7 +453,7 @@ public final class SpongeImplHooks {
 
     @Nullable
     public static PluginContainer getActiveModContainer() {
-        return (PluginContainer) Loader.instance().activeModContainer();
+        return SpongePluginContainer.wrapOrNull(Loader.instance().activeModContainer());
     }
 
     public static Text getAdditionalCommandDescriptions() {

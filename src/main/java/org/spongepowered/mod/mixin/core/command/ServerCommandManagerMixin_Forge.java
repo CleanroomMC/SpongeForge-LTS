@@ -35,6 +35,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.common.command.MinecraftCommandWrapper;
 import org.spongepowered.common.bridge.command.ServerCommandManagerBridge;
 import org.spongepowered.mod.command.ForgeMinecraftCommandWrapper;
+import org.spongepowered.mod.plugin.SpongePluginContainer;
 
 @NonnullByDefault
 @Mixin(value = ServerCommandManager.class, priority = 1001)
@@ -47,6 +48,6 @@ public abstract class ServerCommandManagerMixin_Forge extends CommandHandler imp
             activeContainer = Loader.instance().getMinecraftModContainer();
         }
 
-        return new ForgeMinecraftCommandWrapper((PluginContainer) activeContainer, command);
+        return new ForgeMinecraftCommandWrapper(SpongePluginContainer.wrap(activeContainer), command);
     }
 }

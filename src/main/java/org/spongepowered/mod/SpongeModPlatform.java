@@ -32,13 +32,14 @@ import org.spongepowered.api.MinecraftVersion;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.common.SpongePlatform;
+import org.spongepowered.mod.plugin.SpongePluginContainer;
 
 @Singleton
 public final class SpongeModPlatform extends SpongePlatform {
 
     @Inject
     public SpongeModPlatform(final PluginManager manager, final MinecraftVersion minecraftVersion) {
-        super(manager, (PluginContainer) SpongeMod.instance, minecraftVersion);
+        super(manager, SpongePluginContainer.wrap(SpongeMod.instance), minecraftVersion);
         this.platformMap.put("ForgeVersion", ForgeVersion.getVersion());
     }
 

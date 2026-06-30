@@ -37,6 +37,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @NonnullByDefault
 @Singleton
@@ -54,13 +55,14 @@ public class SpongeModPluginManager implements PluginManager {
                 }
             }
         }
-        return Optional.ofNullable((PluginContainer) container);
+        return Optional.ofNullable(SpongePluginContainer.wrapOrNull(container));
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public Collection<PluginContainer> getPlugins() {
-        return ImmutableList.copyOf((List) Loader.instance().getActiveModList());
+        return Loader.instance().getActiveModList().stream()
+                .map(SpongePluginContainer::wrap)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -69,7 +71,11 @@ public class SpongeModPluginManager implements PluginManager {
         if (instance instanceof PluginContainer) {
             return Optional.of((PluginContainer) instance);
         }
-        return Optional.ofNullable((PluginContainer) Loader.instance().getReversedModObjectList().get(instance));
+        if (instance instanceof ModContainer) {
+            return Optional.of(SpongePluginContainer.wrap((ModContainer) instance));
+        }
+        ModContainer modContainer = Loader.instance().getReversedModObjectList().get(instance);
+        return Optional.ofNullable(SpongePluginContainer.wrapOrNull(modContainer));
     }
 
     @Override

@@ -118,6 +118,7 @@ import org.spongepowered.mod.bridge.registry.VillagerProfessionBridge_Forge;
 import org.spongepowered.mod.network.SpongeModMessageHandler;
 import org.spongepowered.mod.plugin.MetaModContainer;
 import org.spongepowered.mod.plugin.SpongeModPluginContainer;
+import org.spongepowered.mod.plugin.SpongePluginContainer;
 import org.spongepowered.mod.registry.SpongeForgeModuleRegistry;
 import org.spongepowered.mod.registry.SpongeForgeVillagerRegistry;
 import org.spongepowered.mod.registry.SpongeGameData;
@@ -273,7 +274,7 @@ public class SpongeMod extends MetaModContainer {
         SpongeForgeModuleRegistry.registerForgeData();
 
         this.game.getEventManager().registerListeners(this, this);
-        SpongeImpl.getInternalPlugins().add((PluginContainer) ForgeModContainer.getInstance());
+        SpongeImpl.getInternalPlugins().add(SpongePluginContainer.wrap(ForgeModContainer.getInstance()));
     }
 
     @Override

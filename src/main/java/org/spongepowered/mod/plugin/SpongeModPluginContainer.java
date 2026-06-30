@@ -64,9 +64,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
-// PluginContainer is implemented indirectly through the mixin to ModContainer
+// PluginContainer is implemented indirectly through the adapter since the ModContainer mixin
+// cannot be applied (ModContainer loads before any mixin phase due to Forge's PatchingTransformer).
+// SpongeModPluginContainer cannot implement PluginContainer directly because ModContainer.getSource()
+// returns File while PluginContainer.getSource() returns Optional<Path> — incompatible return types.
 public class SpongeModPluginContainer implements ModContainer, PluginContainerExtension {
 
     // This is the implementation (SpongeForge) injector.
@@ -88,7 +92,8 @@ public class SpongeModPluginContainer implements ModContainer, PluginContainerEx
 
     private Injector injector;
 
-    private PluginContainer pluginContainer = (PluginContainer) (Object) this;
+    private PluginContainer pluginContainer;
+
     private static final String ID_WARNING = "Plugin IDs should be lowercase, and only contain characters from "
             + "a-z, dashes or underscores, start with a lowercase letter, and not exceed 64 characters.";
 
@@ -98,6 +103,7 @@ public class SpongeModPluginContainer implements ModContainer, PluginContainerEx
         this.className = className;
         this.candidate = candidate;
         this.descriptor = descriptor;
+        this.pluginContainer = new ModContainerPluginContainerAdapter(this);
 
         if (!ID_PATTERN.matcher(this.id).matches()) {
             SpongeImpl.getLogger().error("Skipping plugin with invalid plugin ID '{}'. " + ID_WARNING, this.id);
@@ -279,7 +285,7 @@ public class SpongeModPluginContainer implements ModContainer, PluginContainerEx
 
             Class<?> pluginClazz = Class.forName(this.className, true, modClassLoader);
 
-            Injector injector = spongeInjector.getParent().createChildInjector(new PluginModule((PluginContainer) this, pluginClazz));
+            Injector injector = spongeInjector.getParent().createChildInjector(new PluginModule(this.pluginContainer, pluginClazz));
             this.injector = injector;
             this.instance = injector.getInstance(pluginClazz);
 

@@ -38,6 +38,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.common.bridge.TimingBridge;
 import org.spongepowered.common.relocate.co.aikar.timings.SpongeTimings;
 import org.spongepowered.mod.bridge.event.ASMEventHandlerBridge;
+import org.spongepowered.mod.plugin.SpongePluginContainer;
 
 import java.lang.reflect.Method;
 
@@ -58,7 +59,7 @@ public abstract class ASMEventHandlerMixin_Forge implements ASMEventHandlerBridg
     @Override
     public Timing bridge$getTimingsHandler() {
         if (this.timingsHandler == null) {
-            this.timingsHandler = SpongeTimings.getModTimings((PluginContainer) this.owner, this.timingName);
+            this.timingsHandler = SpongeTimings.getModTimings(SpongePluginContainer.wrap(this.owner), this.timingName);
         }
         return this.timingsHandler;
     }

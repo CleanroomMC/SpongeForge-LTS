@@ -34,6 +34,8 @@ import com.google.common.collect.ListMultimap;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.ModContainer;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
@@ -44,6 +46,7 @@ import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.data.persistence.NbtTranslator;
 import org.spongepowered.common.util.VecHelper;
 import org.spongepowered.mod.mixin.core.forge.common.ForgeChunkManager$TicketAccessor;
+import org.spongepowered.mod.plugin.SpongePluginContainer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -118,7 +121,17 @@ public class SpongeChunkTicketManager implements ChunkTicketManager {
 
     @Override
     public int getMaxTickets(final Object plugin) {
-        return ForgeChunkManager.getMaxTicketLengthFor(((PluginContainer) plugin).getId());
+        if (plugin instanceof PluginContainer) {
+            return ForgeChunkManager.getMaxTicketLengthFor(((PluginContainer) plugin).getId());
+        }
+        if (plugin instanceof ModContainer) {
+            return ForgeChunkManager.getMaxTicketLengthFor(SpongePluginContainer.wrap((ModContainer) plugin).getId());
+        }
+        final ModContainer mc = Loader.instance().getReversedModObjectList().get(plugin);
+        if (mc != null) {
+            return ForgeChunkManager.getMaxTicketLengthFor(mc.getModId());
+        }
+        throw new IllegalArgumentException("Not a valid plugin: " + plugin);
     }
 
     @Override

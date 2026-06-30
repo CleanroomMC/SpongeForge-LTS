@@ -27,22 +27,18 @@ package org.spongepowered.mod.mixin.optimization.threadchecks;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.relauncher.Side;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.common.event.tracking.PhaseTracker;
 import org.spongepowered.mod.SpongeMod;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin_ForgeThreadChecks {
 
-    @Shadow private static Minecraft instance;
-
-    @Redirect(method = "<init>", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;instance:Lnet/minecraft/client/Minecraft;"))
-    private void forgeThreadCheck$updateClientThreadToPhaseTracker(final Minecraft minecraft) throws IllegalAccessException {
-        instance = minecraft;
-        final Thread thread = Thread.currentThread();
-        PhaseTracker.CLIENT.setThread(thread);
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void forgeThreadCheck$updateClientThreadToPhaseTracker(final CallbackInfo ci) throws IllegalAccessException {
+        PhaseTracker.CLIENT.setThread(Thread.currentThread());
     }
 
 }
